@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.ProjectGreenMind" parent="android:Theme.Material.Light.NoActionBar" />
-    
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen" >
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/white</item>
         <item name="postSplashScreenTheme">@style/Theme.ProjectGreenMind</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo_project</item>
     </style>
+
 </resources>
