@@ -7,4 +7,52 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!--Project colors-->
+
+    <!-- 🟩 Greens -->
+    <color name="green_primary">#41F097</color>
+    <color name="green_secondary">#47CE5B</color>
+    <color name="green_deep">#28D631</color>
+    <color name="green_light">#78E485</color>
+    <color name="green_soft">#A3EEC1</color>
+    <color name="green_dark">#119A2F</color>
+    <color name="green_neutral">#3FAD57</color>
+    <color name="green_highlight">#51FF44</color>
+    <color name="green_muted">#7BFF67</color>
+
+    <!-- ⚫ Grays & Neutrals -->
+    <color name="gray_dark">#151C24</color>
+    <color name="gray_darker">#000000</color>
+    <color name="gray_medium">#5B5757</color>
+    <color name="gray_light">#B3B3B3</color>
+    <color name="gray_soft">#D9D9D9</color>
+    <color name="gray_lighter">#EAEAEA</color>
+    <color name="gray_extra_light">#F6F6F6</color>
+    <color name="gray_silver">#CAC4D0</color>
+    <color name="gray_white">#FFFFFF</color>
+
+    <!-- 🔵 Blues & Cyans -->
+    <color name="blue_primary">#2778BE</color>
+    <color name="blue_accent">#1976D2</color>
+    <color name="blue_dark">#1E3D4B</color>
+    <color name="cyan_soft">#A7E9C7</color>
+    <color name="cyan_highlight">#4AFFB4</color>
+    <color name="cyan_pale">#70DCE0</color>
+
+    <!-- 🟣 Purples -->
+    <color name="purple_primary">#5630BF</color>
+    <color name="purple_accent">#4F378A</color>
+    <color name="purple_soft">#E8DEF8</color>
+    <color name="purple_light">#EADDFF</color>
+    <color name="purple_white">#F3EDF7</color>
+
+    <!-- 🟠 Oranges & Yellows -->
+    <color name="orange_primary">#FF3D00</color>
+    <color name="yellow_accent">#FFC107</color>
+
+    <!-- ⚪ Whites & Lights -->
+    <color name="white_base">#FFFFFF</color>
+    <color name="white_tone">#FEF7FF</color>
+    <color name="white_soft">#DDFCDF</color>
 </resources>

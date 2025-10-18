@@ -2,9 +2,9 @@
 <resources>
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenBackground">@color/blue_dark</item>
         <item name="postSplashScreenTheme">@style/Theme.ProjectGreenMind</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo_project</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/animated_logo</item>
     </style>
 
 </resources>
