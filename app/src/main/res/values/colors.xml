@@ -10,49 +10,106 @@
 
     <!--Project colors-->
 
-    <!-- 🟩 Greens -->
-    <color name="green_primary">#41F097</color>
-    <color name="green_secondary">#47CE5B</color>
-    <color name="green_deep">#28D631</color>
-    <color name="green_light">#78E485</color>
-    <color name="green_soft">#A3EEC1</color>
-    <color name="green_dark">#119A2F</color>
-    <color name="green_neutral">#3FAD57</color>
-    <color name="green_highlight">#51FF44</color>
-    <color name="green_muted">#7BFF67</color>
+    <!-- BLACKS & DARK GRAYS -->
+    <color name="black_000000">#000000</color>
+    <color name="black_020202">#020202</color>
+    <color name="black_070707">#070707</color>
+    <color name="dark_blue_000113">#000113</color>
+    <color name="dark_gray_0c0c0c">#0C0C0C</color>
+    <color name="dark_gray_1e1e1e">#1E1E1E</color>
+    <color name="dark_blue_1e293b">#1E293B</color>
+    <color name="dark_blue_1e3d4b">#1E3D4B</color>
+    <color name="dark_blue_1d1b20">#1D1B20</color>
+    <color name="dark_gray_151c24">#151C24</color>
+    <color name="dark_gray_3b3b3b">#3B3B3B</color>
+    <color name="dark_gray_474747">#474747</color>
+    <color name="dark_gray_49454f">#49454F</color>
+    <color name="dark_blue_4a4459">#4A4459</color>
+    <color name="dark_gray_5b5757">#5B5757</color>
+    <color name="dark_gray_5e5656">#5E5656</color>
+    <color name="dark_gray_6c6a6d">#6C6A6D</color>
+    <color name="dark_gray_6f6e6e">#6F6E6E</color>
+    <color name="dark_gray_787575">#787575</color>
+    <color name="dark_gray_79747e">#79747E</color>
+    <color name="gray_7a7b7a">#7A7B7A</color>
+    <color name="dark_gray_828282">#828282</color>
 
-    <!-- ⚫ Grays & Neutrals -->
-    <color name="gray_dark">#151C24</color>
-    <color name="gray_darker">#000000</color>
-    <color name="gray_medium">#5B5757</color>
-    <color name="gray_light">#B3B3B3</color>
-    <color name="gray_soft">#D9D9D9</color>
-    <color name="gray_lighter">#EAEAEA</color>
-    <color name="gray_extra_light">#F6F6F6</color>
-    <color name="gray_silver">#CAC4D0</color>
-    <color name="gray_white">#FFFFFF</color>
+    <!-- GREENS & CYANS -->
+    <color name="dark_cyan_00677c">#00677C</color>
+    <color name="bright_green_03ff0b">#03FF0B</color>
+    <color name="green_06c463">#06C463</color>
+    <color name="green_0ba858">#0BA858</color>
+    <color name="green_0bdd51">#0BDD51</color>
+    <color name="green_0c885b">#0C885B</color>
+    <color name="green_119a2f">#119A2F</color>
+    <color name="dark_green_114f36">#114F36</color>
+    <color name="dark_green_145723">#145723</color>
+    <color name="dark_green_246047">#246047</color>
+    <color name="green_24c582">#24C582</color>
+    <color name="green_249365">#249365</color>
+    <color name="green_28d631">#28D631</color>
+    <color name="bright_green_2fe666">#2FE666</color>
+    <color name="green_276134">#276134</color>
+    <color name="green_34c759">#34C759</color>
+    <color name="bright_green_35ee90">#35EE90</color>
+    <color name="dark_green_378848">#378848</color>
+    <color name="dark_green_3b904a">#3B904A</color>
+    <color name="dark_green_3fad57">#3FAD57</color>
+    <color name="green_3f9368">#3F9368</color>
+    <color name="bright_green_41f097">#41F097</color>
+    <color name="green_42d135">#42D135</color>
+    <color name="green_44f299">#44F299</color>
+    <color name="green_45a172">#45A172</color>
+    <color name="green_47ce5b">#47CE5B</color>
+    <color name="green_4bb65d">#4BB65D</color>
+    <color name="green_4caf50">#4CAF50</color>
+    <color name="green_51d491">#51D491</color>
+    <color name="bright_green_51ff44">#51FF44</color>
+    <color name="bright_green_57ef7f">#57EF7F</color>
+    <color name="bright_green_58fd65">#58FD65</color>
+    <color name="light_cyan_70dce0">#70DCE0</color>
+    <color name="light_green_78d873">#78D873</color>
+    <color name="green_78e485">#78E485</color>
+    <color name="light_green_7bc8a1">#7BC8A1</color>
+    <color name="bright_green_7bff67">#7BFF67</color>
+    <color name="light_green_7fffa5">#7FFFA5</color>
+    <color name="light_cyan_89ffce">#89FFCE</color>
+    <color name="light_green_a3eec1">#A3EEC1</color>
+    <color name="light_cyan_a7e9c7">#A7E9C7</color>
+    <color name="light_green_d3ffc7">#D3FFC7</color>
+    <color name="light_green_ddfcdf">#DDFCDF</color>
+    <color name="bright_cyan_4affb4">#4AFFB4</color>
 
-    <!-- 🔵 Blues & Cyans -->
-    <color name="blue_primary">#2778BE</color>
-    <color name="blue_accent">#1976D2</color>
-    <color name="blue_dark">#1E3D4B</color>
-    <color name="cyan_soft">#A7E9C7</color>
-    <color name="cyan_highlight">#4AFFB4</color>
-    <color name="cyan_pale">#70DCE0</color>
+    <!-- WHITES & LIGHT GRAYS -->
+    <color name="white_ffffff">#FFFFFF</color>
+    <color name="white_fef7ff">#FEF7FF</color>
+    <color name="light_gray_f6f6f6">#F6F6F6</color>
+    <color name="light_gray_eaeaea">#EAEAEA</color>
+    <color name="light_gray_e9e7e7">#E9E7E7</color>
+    <color name="light_gray_d9d9d9">#D9D9D9</color>
+    <color name="light_gray_d3d3d3">#D3D3D3</color>
+    <color name="light_gray_d1d1d1">#D1D1D1</color>
+    <color name="light_gray_b3b3b3">#B3B3B3</color>
+    <color name="light_gray_beb7b7">#BEB7B7</color>
+    <color name="light_gray_cbd5e1">#CBD5E1</color>
 
-    <!-- 🟣 Purples -->
-    <color name="purple_primary">#5630BF</color>
-    <color name="purple_accent">#4F378A</color>
-    <color name="purple_soft">#E8DEF8</color>
-    <color name="purple_light">#EADDFF</color>
-    <color name="purple_white">#F3EDF7</color>
+    <!-- PURPLES -->
+    <color name="light_purple_eaddff">#EADDFF</color>
+    <color name="light_purple_cac4d0">#CAC4D0</color>
+    <color name="light_purple_e8def8">#E8DEF8</color>
+    <color name="light_purple_f3edf7">#F3EDF7</color>
+    <color name="purple_4f378a">#4F378A</color>
+    <color name="purple_5630bf">#5630BF</color>
+    <color name="purple_625b71">#625B71</color>
 
-    <!-- 🟠 Oranges & Yellows -->
-    <color name="orange_primary">#FF3D00</color>
-    <color name="yellow_accent">#FFC107</color>
+    <!-- BLUES -->
+    <color name="blue_1976d2">#1976D2</color>
+    <color name="blue_2778be">#2778BE</color>
+    <color name="dark_blue_475569">#475569</color>
+    <color name="dark_blue_64748b">#64748B</color>
 
-    <!-- ⚪ Whites & Lights -->
-    <color name="white_base">#FFFFFF</color>
-    <color name="white_tone">#FEF7FF</color>
-    <color name="white_soft">#DDFCDF</color>
+    <!-- ACCENT COLORS -->
+    <color name="red_ff3d00">#FF3D00</color>
+    <color name="yellow_ffc107">#FFC107</color>
+
 </resources>
