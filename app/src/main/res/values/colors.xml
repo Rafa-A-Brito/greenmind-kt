@@ -104,6 +104,7 @@
 
     <!-- BLUES -->
     <color name="blue_1976d2">#1976D2</color>
+    <color name="blue_dark_DB151C24">#DB151C24</color>
     <color name="blue_2778be">#2778BE</color>
     <color name="dark_blue_475569">#475569</color>
     <color name="dark_blue_64748b">#64748B</color>
