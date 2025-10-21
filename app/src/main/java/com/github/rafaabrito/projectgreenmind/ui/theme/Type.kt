@@ -50,7 +50,7 @@ val Typography = Typography(
     titleMedium = TextStyle(
         fontFamily = Inter,
         fontWeight = FontWeight.Medium,
-        fontSize = 16.sp
+        fontSize = 14.sp
     ),
     labelMedium = TextStyle(
         fontFamily = Roboto,

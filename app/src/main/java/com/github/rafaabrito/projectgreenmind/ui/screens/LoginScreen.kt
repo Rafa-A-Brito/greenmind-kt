@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,11 +26,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.rafaabrito.projectgreenmind.LoginTextField
 import com.github.rafaabrito.projectgreenmind.R
+import com.github.rafaabrito.projectgreenmind.SocialMediaLogin
+import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 
 @Composable
 fun LoginScreen() {
@@ -45,29 +52,43 @@ fun LoginScreen() {
                 .fillMaxSize()
                 .padding(horizontal = 30.dp))
             {
-                LoginTextField(
-                    label = "Email",
-                    trailing = "",
-                    modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(15.dp))
-                LoginTextField(
-                    label = "Senha",
-                    trailing = "",
-                    modifier = Modifier.fillMaxWidth())
+                LoginSection()
+                Spacer(modifier = Modifier.height(30.dp))
+
+                DividerText()
                 Spacer(modifier = Modifier.height(20.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth()
-                        .height(40.dp),
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF3FAD57),
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(size = 4.dp)
+                SocialMediaSection()
+
+                Box(
+                    modifier = Modifier.fillMaxHeight(fraction = 0.8f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.BottomCenter
+                ){
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color(0xFF3B3B3B),
+                                    fontSize = 14.sp,
+                                    fontFamily = Roboto,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            ){
+                                append("Não possue uma conta?")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color.Black,
+                                    fontSize = 14.sp,
+                                    fontFamily = Roboto,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            ){
+                                append(" ")
+                                append("Registre-se agora.")
+                            }
+                        }
                     )
-                {
-                    Text(text = "Log in",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium ))
                 }
             }
         }
@@ -119,8 +140,80 @@ private fun TopSection() {
         )
     }
 }
+@Composable
+private fun LoginSection(){
+    LoginTextField(
+        label = "Email",
+        trailing = "",
+        modifier = Modifier.fillMaxWidth())
+    Spacer(modifier = Modifier.height(15.dp))
+    LoginTextField(
+        label = "Senha",
+        trailing = "Esqueceu a senha?",
+        modifier = Modifier.fillMaxWidth())
+    Spacer(modifier = Modifier.height(20.dp))
+    Button(
+        modifier = Modifier.fillMaxWidth()
+            .height(40.dp),
+        onClick = {},
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Black,
+            contentColor = Color.White
+        ),
+        shape = RoundedCornerShape(size = 4.dp)
+    )
+    {
+        Text(text = "Log in",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium ))
+    }
+}
 
 
+@Composable
+private fun DividerText(){
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        HorizontalDivider(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp),
+            color = Color.Black
+        )
+
+        Text(
+            text = "OU",
+            modifier = Modifier.padding(horizontal = 8.dp),
+            style = MaterialTheme.typography.labelMedium.copy(
+                color = Color.DarkGray,
+            )
+        )
+
+        HorizontalDivider(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp),
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+private fun SocialMediaSection(){
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SocialMediaLogin(icon = R.drawable.google, text = "Google",
+            modifier = Modifier.weight(1f)) { }
+        Spacer(modifier = Modifier.width(20.dp))
+        SocialMediaLogin(icon = R.drawable.facebook, text = "Facebook",
+            modifier = Modifier.weight(1f)) { }
+    }
+}
 @Preview
 @Composable
 private fun LoginPreview() {
