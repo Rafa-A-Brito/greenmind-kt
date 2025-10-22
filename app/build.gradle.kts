@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
-
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -68,5 +68,31 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
+    // RecylerView
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.recyclerview.selection)
+
+    //Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    // ViewModel Compose
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // LiveData
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+
+    // Lifecycle Compose
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Import the Firebase BoM
+    implementation(platform(libs.firebase.bom))
+
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation(libs.firebase.analytics)
 
 }
