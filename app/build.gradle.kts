@@ -70,6 +70,7 @@ dependencies {
 
     // RecylerView
     implementation(libs.androidx.recyclerview)
+    // For control over item selection of both touch and mouse driven selection
     implementation(libs.androidx.recyclerview.selection)
 
     //Navigation
@@ -90,9 +91,6 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom))
 
-
-    // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
-
 }

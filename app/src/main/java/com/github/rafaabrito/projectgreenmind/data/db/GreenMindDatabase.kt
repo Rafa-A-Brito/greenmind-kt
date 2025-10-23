@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.github.rafaabrito.projectgreenmind.data.db.dao.UserDao
 import android.content.Context
+import androidx.room.Room
 
 @Database(entities = [UserEntity::class], version = 1)
 abstract class GreenMindDatabase: RoomDatabase(){
@@ -16,10 +17,10 @@ abstract class GreenMindDatabase: RoomDatabase(){
         fun getDatabase(context: Context):GreenMindDatabase{
             return INSTANCE?: synchronized(this){
                 Room.databaseBuilder(
-                    content.ApplicationContext,
+                    context.applicationContext,
                     GreenMindDatabase::class.java,
-                    "greenmind_db
-                ).build
+                    "greenmind_db"
+                ).build()
                 .also{ INSTANCE = it}
             }
         }
