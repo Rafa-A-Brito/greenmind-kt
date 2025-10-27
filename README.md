@@ -2,15 +2,15 @@
 
 ### ✨ Visão Geral do Projeto
 
-O **GreenMind** é um aplicativo móvel desenvolvido para atuar como uma ferramenta prática e educativa na promoção da **conscientização e sustentabilidade ambiental**.
+O **GreenMind** é um aplicativo móvel desenvolvido para atuar como uma ferramenta prática e educativa na promoção da conscientização e sustentabilidade ambiental.
 
-Este projeto busca **gamificar** a adoção de hábitos sustentáveis e **facilitar** a ação direta do usuário.
+Este projeto busca gamificar a adoção de hábitos sustentáveis e facilitar a ação direta do usuário.
 
 **Recursos Principais:**
 
-* 🗺️ **Localização Inteligente:** Integração de **Mapas** (via OSMDroid) para localização de **Ecopontos, Pontos de Coleta Seletiva ou ONGs ambientais** próximos, oferecendo rotas otimizadas.
-* 📚 **Conhecimento Diário:** **Pop-ups** ou *cards* informativos diários com **dicas de sustentabilidade, curiosidades ambientais** e fatos relevantes.
-* 🔥 **Gamificação e Engajamento:** Sistema de **Ofensivas (*Streaks*)** para incentivar a interação contínua e a manutenção de uma rotina de aprendizado e ação.
+* 🗺️ **Localização Inteligente:** Integração de Mapas (via OSMDroid) para localização de Ecopontos, Pontos de Coleta Seletiva ou ONGs ambientais próximos, oferecendo rotas otimizadas.
+* 📚 **Conhecimento Diário:** Pop-ups ou cards informativos diários com dicas de sustentabilidade, curiosidades ambientais e fatos relevantes.
+* 🔥 **Gamificação e Engajamento:** Sistema de Ofensivas (_streaks_) para incentivar a interação contínua e a manutenção de uma rotina de aprendizado e ação.
 * 👤 **Rastreamento de Progresso:** Funcionalidade para o usuário registrar e monitorar suas ações ambientais (ex: descarte correto, redução de consumo, participação em desafios).
 
 ###  💡 Ideias para Aprimoramento
@@ -26,7 +26,7 @@ Para tornar o GreenMind mais completo e engajador, serão consideradas as seguin
 
 ### ⚙️ Configuração e Arquitetura
 
-O projeto segue a arquitetura **MVVM (Model-View-ViewModel)**, utilizando **Jetpack Compose** para o desenvolvimento da interface de usuário moderna e reativa.
+O projeto segue a arquitetura **MVVM (Model-View-ViewModel)**, utilizando Jetpack Compose para o desenvolvimento da interface de usuário moderna e reativa.
 
 ```bash
 GreenMindProject/
@@ -117,7 +117,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 
 Desde já, sou grato pelo apoio e suporte das plataformas e ferramentas que possibilitaram a construção deste projeto:
 
-* **OpenStreetMap (OSM) / OSMDroid:** Pela API de mapas de código aberto, essencial para a funcionalidade de localização e rotas.
+* **OpenStreetMap (OSM:** Pela API de mapas de código aberto, essencial para a funcionalidade de localização e rotas.
 * **Android / Google:** Por fornecer a plataforma e o ecossistema de bibliotecas (Jetpack) para o desenvolvimento móvel.
 * **Kotlin:** A linguagem de programação moderna e concisa utilizada no projeto.
 
