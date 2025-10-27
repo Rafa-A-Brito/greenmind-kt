@@ -109,7 +109,7 @@ O fluxo de navegação será intuitivo, cobrindo as seguintes telas principais:
 
 ---
 
-### 📃 LiCENSE
+### 📃 LICENSE
 Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o livre conhecimento e uso em demais projetos, contanto que a atribuição original seja mantida.
 
 ---
