@@ -68,6 +68,9 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
+    // Window Size Class
+    implementation(libs.material3.window.size.class1)
+
     // RecylerView
     implementation(libs.androidx.recyclerview)
 

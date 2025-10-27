@@ -29,9 +29,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.rafaabrito.projectgreenmind.LoginTextField
+import com.github.rafaabrito.projectgreenmind.ui.components.LoginTextField
 import com.github.rafaabrito.projectgreenmind.R
-import com.github.rafaabrito.projectgreenmind.SocialMediaLogin
+import com.github.rafaabrito.projectgreenmind.ui.components.SocialMediaLogin
 
 @Composable
 fun RegisterScreen() {
@@ -160,7 +160,7 @@ private fun DividerText(){
         )
 
         Text(
-            text = "OU",
+            text = "ou continue com",
             modifier = Modifier.padding(horizontal = 8.dp),
             style = MaterialTheme.typography.labelMedium.copy(
                 color = Color.DarkGray,

@@ -1,6 +1,8 @@
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,69 +34,61 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.github.rafaabrito.projectgreenmind.LoginTextField
+import com.github.rafaabrito.projectgreenmind.ui.components.LoginTextField
 import com.github.rafaabrito.projectgreenmind.R
-import com.github.rafaabrito.projectgreenmind.SocialMediaLogin
+import com.github.rafaabrito.projectgreenmind.ui.components.SocialMediaLogin
 import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
+import com.github.rafaabrito.projectgreenmind.ui.theme.ScreenOrientation
+import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
 
 @Composable
 fun LoginScreen() {
     Surface {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ){
-            // Possível estruturação de alteração de tema
-
-            TopSection()
-            Spacer(modifier = Modifier.height(36.dp))
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 30.dp))
-            {
-                LoginSection()
-                Spacer(modifier = Modifier.height(30.dp))
-
-                DividerText()
-                Spacer(modifier = Modifier.height(20.dp))
-                SocialMediaSection()
-
-                Box(
-                    modifier = Modifier.fillMaxHeight(fraction = 0.8f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.BottomCenter
-                ){
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = Color(0xFF3B3B3B),
-                                    fontSize = 14.sp,
-                                    fontFamily = Roboto,
-                                    fontWeight = FontWeight.Normal
-                                )
-                            ){
-                                append("Não possue uma conta?")
-                            }
-                            withStyle(
-                                style = SpanStyle(
-                                    color = Color.Black,
-                                    fontSize = 14.sp,
-                                    fontFamily = Roboto,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            ){
-                                append(" ")
-                                append("Registre-se agora.")
-                            }
-                        }
-                    )
-                }
-            }
+        if (ScreenOrientation == Configuration.ORIENTATION_PORTRAIT){
+            PortraitLoginScreen()
+        }else{
+            LandscapeLoginScreen()
         }
+
     }
 }
 
+@Composable
+private fun LandscapeLoginScreen(){
+    Column(
+        modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = 30.dp),
+        verticalArrangement = Arrangement.Center)
+    {
+        LoginSection()
+        SocialMediaSection()
+    }
+}
+
+@Composable
+private fun PortraitLoginScreen(){
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ){
+        // Possível estruturação de alteração de tema
+
+        TopSection()
+        Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium2))
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 30.dp))
+        {
+            LoginSection()
+            Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
+
+            DividerText()
+            Spacer(modifier = Modifier.height(20.dp))
+            SocialMediaSection()
+            CreateAccount()
+        }
+    }
+}
 @Composable
 private fun TopSection() {
     Box(
@@ -103,18 +97,20 @@ private fun TopSection() {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(fraction = 0.35f),
+                .fillMaxHeight(fraction = 0.40f),
             painter = painterResource(id = R.drawable.shape),
             contentDescription = null,
             contentScale = ContentScale.FillBounds
         )
 
         Row(
-            modifier = Modifier.padding(top = 40.dp, bottom = 15.dp),
+            modifier = Modifier.padding(
+                top = MaterialTheme.dimens.large,
+                bottom = MaterialTheme.dimens.medium2),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier.size(MaterialTheme.dimens.logoSize), // 100.dp
                 painter = painterResource(id = R.drawable.app_logo),
                 contentDescription = stringResource(id = R.string.app_logo),
 
@@ -146,15 +142,15 @@ private fun LoginSection(){
         label = "Email",
         trailing = "",
         modifier = Modifier.fillMaxWidth())
-    Spacer(modifier = Modifier.height(15.dp))
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
     LoginTextField(
         label = "Senha",
         trailing = "Esqueceu a senha?",
         modifier = Modifier.fillMaxWidth())
-    Spacer(modifier = Modifier.height(20.dp))
+    Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
     Button(
         modifier = Modifier.fillMaxWidth()
-            .height(40.dp),
+            .height(MaterialTheme.dimens.buttonHeight),
         onClick = {},
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Black,
@@ -185,7 +181,7 @@ private fun DividerText(){
         )
 
         Text(
-            text = "OU",
+            text = "ou continue com",
             modifier = Modifier.padding(horizontal = 8.dp),
             style = MaterialTheme.typography.labelMedium.copy(
                 color = Color.DarkGray,
@@ -209,11 +205,47 @@ private fun SocialMediaSection(){
     ) {
         SocialMediaLogin(icon = R.drawable.google, text = "Google",
             modifier = Modifier.weight(1f)) { }
-        Spacer(modifier = Modifier.width(20.dp))
+        Spacer(modifier = Modifier.width(MaterialTheme.dimens.small3))
         SocialMediaLogin(icon = R.drawable.facebook, text = "Facebook",
             modifier = Modifier.weight(1f)) { }
     }
 }
+
+@Composable
+private fun CreateAccount(){
+    Box(
+        modifier = Modifier.fillMaxHeight(fraction = 0.8f)
+            .fillMaxWidth(),
+        contentAlignment = Alignment.BottomCenter
+    ){
+        Text(
+            text = buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = Color(0xFF3B3B3B),
+                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        fontFamily = Roboto,
+                        fontWeight = FontWeight.Normal
+                    )
+                ){
+                    append("Não possue uma conta?")
+                }
+                withStyle(
+                    style = SpanStyle(
+                        color = Color.Black,
+                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        fontFamily = Roboto,
+                        fontWeight = FontWeight.Medium
+                    )
+                ){
+                    append(" ")
+                    append("Registre-se agora.")
+                }
+            }
+        )
+    }
+}
+
 @Preview
 @Composable
 private fun LoginPreview() {

@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind
+package com.github.rafaabrito.projectgreenmind.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.rafaabrito.projectgreenmind.ui.theme.LightBlueWhite
+import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
 
 @Composable
 fun SocialMediaLogin(
@@ -35,7 +36,7 @@ fun SocialMediaLogin(
             .clip(RoundedCornerShape(4.dp))
             .background(LightBlueWhite)
             .clickable{onClick()}
-            .height(40.dp),
+            .height(MaterialTheme.dimens.buttonHeight),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

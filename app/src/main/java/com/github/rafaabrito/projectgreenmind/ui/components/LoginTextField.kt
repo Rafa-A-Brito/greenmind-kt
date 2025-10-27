@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind
+package com.github.rafaabrito.projectgreenmind.ui.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.github.rafaabrito.projectgreenmind.ui.theme.LightBlueWhite
-import com.github.rafaabrito.projectgreenmind.ui.theme.DarkBlue
+
 @Composable
 fun LoginTextField(
     modifier: Modifier = Modifier,
