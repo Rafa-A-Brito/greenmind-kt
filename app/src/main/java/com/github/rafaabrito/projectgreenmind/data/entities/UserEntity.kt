@@ -1,7 +1,7 @@
-package com.github.rafaabrito.projectgreenmind.data.db
+package com.github.rafaabrito.projectgreenmind.data.entities
 
 import androidx.room.ColumnInfo
-import androidx.room.Entity
+    import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "user" )

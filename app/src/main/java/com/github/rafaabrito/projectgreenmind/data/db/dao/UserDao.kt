@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.github.rafaabrito.projectgreenmind.data.db.UserEntity
+import com.github.rafaabrito.projectgreenmind.data.entities.UserEntity
 
 @Dao
 interface UserDao {

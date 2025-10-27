@@ -66,7 +66,7 @@ private fun TopSection() {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(fraction = 0.35f),
+                .fillMaxHeight(fraction = 0.40f),
             painter = painterResource(id = R.drawable.shape),
             contentDescription = null,
             contentScale = ContentScale.FillBounds
