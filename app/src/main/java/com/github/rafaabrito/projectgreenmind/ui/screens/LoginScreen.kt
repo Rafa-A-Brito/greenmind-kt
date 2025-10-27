@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -14,7 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -26,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -47,9 +51,8 @@ fun LoginScreen() {
         if (ScreenOrientation == Configuration.ORIENTATION_PORTRAIT){
             PortraitLoginScreen()
         }else{
-            LandscapeLoginScreen()
+            PortraitLoginScreen()
         }
-
     }
 }
 
@@ -70,6 +73,7 @@ private fun LandscapeLoginScreen(){
 private fun PortraitLoginScreen(){
     Column(
         modifier = Modifier.fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ){
         // Possível estruturação de alteração de tema
 
@@ -85,19 +89,25 @@ private fun PortraitLoginScreen(){
             DividerText()
             Spacer(modifier = Modifier.height(20.dp))
             SocialMediaSection()
-            CreateAccount()
+
         }
+        Spacer( modifier = Modifier.weight(0.8f))
+        CreateAccount()
+        Spacer( modifier = Modifier.weight(0.3f))
+
     }
 }
 @Composable
 private fun TopSection() {
+
+    val screenHeight = LocalConfiguration.current.screenHeightDp
     Box(
         contentAlignment = Alignment.TopCenter
     ) {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(fraction = 0.40f),
+                .height((screenHeight / 2.12 ).dp),
             painter = painterResource(id = R.drawable.shape),
             contentDescription = null,
             contentScale = ContentScale.FillBounds
@@ -105,7 +115,7 @@ private fun TopSection() {
 
         Row(
             modifier = Modifier.padding(
-                top = MaterialTheme.dimens.large,
+                top = (screenHeight/9).dp,
                 bottom = MaterialTheme.dimens.medium2),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -119,11 +129,13 @@ private fun TopSection() {
             Column {
                 Text(
                     text = stringResource(id = R.string.title_project),
-                    style = MaterialTheme.typography.headlineMedium
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = stringResource(id = R.string.slogan_project),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+
                 )
             }
         }
@@ -132,6 +144,7 @@ private fun TopSection() {
                 .padding(bottom = 10.dp)
                 .align(alignment = Alignment.BottomCenter),
             text = stringResource(id = R.string.login_txt),
+            fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.headlineLarge
         )
     }
@@ -212,13 +225,10 @@ private fun SocialMediaSection(){
 }
 
 @Composable
-private fun CreateAccount(){
-    Box(
-        modifier = Modifier.fillMaxHeight(fraction = 0.8f)
-            .fillMaxWidth(),
-        contentAlignment = Alignment.BottomCenter
-    ){
+private fun ColumnScope.CreateAccount(){
         Text(
+            modifier = Modifier
+                .align(alignment = Alignment.CenterHorizontally),
             text = buildAnnotatedString {
                 withStyle(
                     style = SpanStyle(
@@ -244,7 +254,6 @@ private fun CreateAccount(){
             }
         )
     }
-}
 
 @Preview
 @Composable
