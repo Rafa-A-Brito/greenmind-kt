@@ -14,5 +14,17 @@ val Black = Color(0xFF000113)
 
 val LightBlueWhite = Color(0xFFF1F5F9) //Social media background
 
-val DarkBlue= Color(0xFF475569)
+val DarkGrayBlue = Color(0xDB151C24)
+
 val DarkGray = Color(0xFF303338)
+
+val LightGray = Color(0xBA787575)
+
+val MinimumBlack = Color(0x59000000)
+val Green = Color(0xFF03FF0B)
+val MintLightGreen = Color(0xA67FFFA5)
+val MediumLightGreen = Color(0x3335C230)
+
+val ForestGreen = Color(0xFF0C885B)
+
+val LimeGreen = Color(0xFF34C759)

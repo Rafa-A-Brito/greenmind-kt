@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -58,6 +60,41 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Splash Screen API
     implementation(libs.androidx.core.splashscreen)
 
+    // Room Configure
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+
+    // Window Size Class
+    implementation(libs.material3.window.size.class1)
+
+    // RecylerView
+    implementation(libs.androidx.recyclerview)
+
+    // For control over item selection of both touch and mouse driven selection
+    implementation(libs.androidx.recyclerview.selection)
+
+    //Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    // ViewModel Compose
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // LiveData
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+
+    // Lifecycle Compose
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Import the Firebase BoM
+    implementation(platform(libs.firebase.bom))
+
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation(libs.firebase.analytics)
 }

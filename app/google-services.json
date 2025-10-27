@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "658883004327",
+    "project_id": "greenmind-app-e4320",
+    "storage_bucket": "greenmind-app-e4320.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658883004327:android:e3d23daed0d6b2e30e5882",
+        "android_client_info": {
+          "package_name": "com.github.rafaabrito.projectgreenmind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPX9K7se7gPrXBporpucgmFJqZn1JYmkI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
