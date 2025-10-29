@@ -58,7 +58,7 @@ GreenMindProject/
 ```
 
 ###  📚 Dependências (Libraries)
-<p> As seguintes dependências são utilizadas no projeto, focando em persistência (Room), UI (Compose/Lifecycle) e mapas (OSMDroid): </p>
+<p> As seguintes dependências são utilizadas no projeto, focando em persistência (Room), UI (Compose/Lifecycle) e mapas (OSM Android): </p>
 
 ```bash
 dependencies {
@@ -121,8 +121,8 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 
 ### 🗺️ RoadMap — App de Conscientização Ambiental Gamificado
 
-#### 🌱 Fase 1: Concepção e MVP (0–3 meses)
-**Objetivo:** Validar a ideia central e entregar uma versão funcional mínima.  
+#### 🌱 Fase 1: Concepção e MVP(_Minimum Viable Product_)
+**Objetivo:** Validar a ideia central e entregar uma versão funcional com o essencial para melhor atingir o público.  
 
 **Principais entregas:**
 - 💬 **Pesquisa e definição de público-alvo.**  
@@ -148,7 +148,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 
 ---
 
-#### 🌍 Fase 2: Expansão e Engajamento (3–6 meses)
+#### 🌍 Fase 2: Expansão e Engajamento
 **Objetivo:** Aumentar retenção e consolidar a mecânica de gamificação.  
 
 **Principais entregas:**
@@ -162,7 +162,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 
 ---
 
-#### 🌿 Fase 3: Impacto Real (6–9 meses)
+#### 🌿 Fase 3: Impacto Real 
 **Objetivo:** Gerar impacto ambiental mensurável e atrair parceiros estratégicos.  
 
 **Principais entregas:**
@@ -173,7 +173,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 
 ---
 
-#### 🌎 Fase 4: Escalabilidade e Comunidade (9–12 meses)
+#### 🌎 Fase 4: Escalabilidade e Comunidade 
 **Objetivo:** Consolidar a comunidade e expandir o alcance do app.  
 
 **Principais entregas:**
@@ -184,7 +184,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 
 ---
 
-#### 🌟 Fase 5: Sustentabilidade e Aprimoramento (12+ meses)
+#### 🌟 Fase 5: Sustentabilidade e Aprimoramento 
 **Objetivo:** Manter o engajamento e aprimorar continuamente o app e suas funcionalidades.  
 
 **Principais entregas:**
