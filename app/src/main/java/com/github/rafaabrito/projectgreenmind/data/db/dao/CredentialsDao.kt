@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind.data.db.dao
+package com.github.rafaabrito.projectgreenmind.data.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao

@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.PrimaryKey
-import com.github.rafaabrito.projectgreenmind.data.db.UserEntity
+import com.github.rafaabrito.projectgreenmind.data.entities.UserEntity
 
 @Entity(
     tableName = "scoreProgressEntity",
