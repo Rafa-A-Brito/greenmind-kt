@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.github.rafaabrito.projectgreenmind.ui.screens.LoginScreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.ProjectGreenMindTheme
+import com.github.rafaabrito.projectgreenmind.viewModel.MainViewModel
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
