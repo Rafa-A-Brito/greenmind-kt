@@ -8,5 +8,5 @@ data class LocalEcoEntity (
     @PrimaryKey(autoGenerate = true) val  id: Int = 0,
     val lat: Double,
     val long: Double,
-    val local_name: String
+    val localName: String
 )
