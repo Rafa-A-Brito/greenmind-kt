@@ -1,11 +1,11 @@
-package com.github.rafaabrito.projectgreenmind.data.dao
+package com.github.rafaabrito.projectgreenmind.domain.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.github.rafaabrito.projectgreenmind.data.entities.CredentialsEntity
+import com.github.rafaabrito.projectgreenmind.domain.entities.CredentialsEntity
 
 @Dao
 interface CredentialsDao {

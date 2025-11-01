@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind.data.entities
+package com.github.rafaabrito.projectgreenmind.domain.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

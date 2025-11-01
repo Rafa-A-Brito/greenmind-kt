@@ -1,11 +1,10 @@
-package com.github.rafaabrito.projectgreenmind.data.entities
+package com.github.rafaabrito.projectgreenmind.domain.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.PrimaryKey
-import com.github.rafaabrito.projectgreenmind.data.entities.UserEntity
 
 @Entity(
     tableName = "scoreProgressEntity",
