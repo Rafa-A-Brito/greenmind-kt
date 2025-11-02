@@ -36,6 +36,12 @@ val OpenSans = FontFamily(
         Font(resId = R.font.opensans_bold, weight = FontWeight.Bold)
     )
 )
+
+val RobotoMono = FontFamily(
+    listOf(
+        Font(resId = R.font.robotomono_light, weight = FontWeight.Light)
+    )
+)
 /*val Typography = Typography(
     headlineLarge = TextStyle(
         fontFamily = Roboto,

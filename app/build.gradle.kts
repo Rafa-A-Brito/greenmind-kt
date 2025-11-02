@@ -75,6 +75,14 @@ dependencies {
     // Window Size Class
     implementation(libs.material3.window.size.class1)
 
+    // Animated Bottom Bar
+    implementation("com.exyte:animated-navigation-bar:1.0.0")
+
+    // Ícones padrão do Material (compatíveis com Material 3)
+    implementation("androidx.compose.material:material-icons-extended")
+    
+    implementation("androidx.compose.material3:material3")
+
     // RecylerView
     implementation(libs.androidx.recyclerview)
 
@@ -104,4 +112,5 @@ dependencies {
 
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
+
 }

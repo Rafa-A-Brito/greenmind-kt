@@ -2,7 +2,7 @@ package com.github.rafaabrito.projectgreenmind.data.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.github.rafaabrito.projectgreenmind.data.db.dao.UserDao
+import com.github.rafaabrito.projectgreenmind.domain.dao.UserDao
 import android.content.Context
 import androidx.room.Room
 import com.github.rafaabrito.projectgreenmind.domain.entities.UserEntity
