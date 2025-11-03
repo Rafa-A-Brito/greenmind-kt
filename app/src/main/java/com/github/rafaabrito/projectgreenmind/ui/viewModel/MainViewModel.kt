@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind
+package com.github.rafaabrito.projectgreenmind.ui.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

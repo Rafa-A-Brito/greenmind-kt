@@ -25,12 +25,14 @@ Para tornar o GreenMind mais completo e engajador, serão consideradas as seguin
 ---
 
 ### ⚙️ Configuração e Arquitetura
-![KSP](https://img.shields.io/badge/KSP-2.2.1-7f5ab8?style=flat&logo=kotlin)
-![AGP](https://img.shields.io/badge/AGP-8.13.0-3ddc8e?style=flat&logo=android)
-![Compose](https://img.shields.io/badge/Compose-1.7.0-4d94f3?style=flat&logo=kotlin)
+
 
 O projeto segue a arquitetura **MVVM (Model-View-ViewModel)**, utilizando Jetpack Compose para o desenvolvimento da interface de usuário moderna e reativa.
+- `Model:` Gerencia dados e lógica de negócios.
+- `View:` Exibe a interfac gráfica (UI) e e interage com o usuário.
+- `View-Model:` Age como ponte entre _View_ e _Model_, gerencia o estado da UI e lida com dados para exibição.
 
+Segue o modelo do App:
 ```bash
 GreenMindProject/
 └── java/
@@ -38,26 +40,39 @@ GreenMindProject/
         └── github/
             └── rafaabrito/
                 └── projectgreenmind/
-                    ├── data/              # Camada de Dados (Persistência)
-                    │   ├── db/            # Base de Dados (Room)
-                    │   │   └── GreenMindDatabase.kt
-                    │   ├── dao/           # Data Access Objects
-                    │   │   └── UserDao.kt
-                    │   ├── repository/    # Repositórios (Abstração da fonte de dados)
-                    │   │   └── UserRepository.kt
-                    │   └── model/         # Entidades do Banco de Dados
-                    │       └── UserEntity.kt
-                    ├── model/             # Modelos de Domínio (Objetos de Negócio)
-                    │   ├── User.kt
-                    │   └── ... (EcoPoint.kt, DailyTip.kt)
-                    └── ui/                # Camada de Apresentação (UI)
-                        ├── components/    # Componentes reutilizáveis do Compose
+                    ├── data/            # Camada de Acesso e Gerenciamento de Dados
+                    │   ├── db/          # Estrutura do Banco de Dados Local (e.g., Room)
+                    │   │   ├── dao/     # Data Access Objects: Interfaces para DB CRUD
+                    │   │   │   ├── CredentialsDao.kt
+                    │   │   │   └── UserDao.kt
+                    │   │   └── GreenMindDatabase.kt # Classe principal do DB
+                    │   ├── entities/    # Classes que mapeiam tabelas do DB (Modelos de Persistência)
+                    │   │   ├── CredentialsEntity.kt
+                    │   │   ├── FilesEntity.kt
+                    │   │   ├── LocalEcoEntity.kt
+                    │   │   ├── ScoreEntity.kt
+                    │   │   ├── TasksEntity.kt
+                    │   │   ├── TasksProgressEntity.kt
+                    │   │   └── UserEntity.kt
+                    │   ├── model/       # Modelos de Domínio/Negócio (Objetos de Negócio)
+                    │   │   └── User.kt
+                    │   └── repository/  # Repositórios: Intermediadores entre UI/Logic e Fontes de Dados
+                    │       └── UserRepository.kt
+                    └── ui/              # Camada de Apresentação e Interface do Usuário
+                        ├── components/  # Elementos de UI Reutilizáveis (Widgets/Composables)
                         │   ├── LoginTextField.kt
                         │   └── SocialMediaLogin.kt
-                        ├── viewmodel/     # ViewModels (Lógica de Apresentação)
-                        │   └── MainViewModel.kt
-                        ├── screens/       # Telas principais (e.g., MapScreen.kt, HomeScreen.kt)
-                        └── MainActivity.kt
+                        ├── registration/  # Lógica/Fluxos específicos para Registro (Pasta Vazia)
+                        └── screens/       # Telas Principais da Aplicação (Views/Composables de Tela)
+                            ├── CommunityScreen.kt
+                            ├── EcoScreen.kt
+                            ├── EcoTasksScreen.kt
+                            ├── HomeScreen.kt
+                            ├── LoginScreen.kt
+                            ├── PresentationScreen.kt
+                            ├── ProfileScreen.kt
+                            ├── RankingScreen.kt
+                            └── RegisterScreen.kt
 ```
 
 ###  📚 Dependências (Libraries)

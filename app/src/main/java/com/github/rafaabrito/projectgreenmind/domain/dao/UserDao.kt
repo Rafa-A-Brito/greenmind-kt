@@ -1,11 +1,10 @@
-package com.github.rafaabrito.projectgreenmind.data.db.dao
+package com.github.rafaabrito.projectgreenmind.domain.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.github.rafaabrito.projectgreenmind.data.entities.UserEntity
-
+import com.github.rafaabrito.projectgreenmind.domain.entities.UserEntity
 @Dao
 interface UserDao {
     // Inserção de dados do usuário
@@ -16,7 +15,9 @@ interface UserDao {
     @Query("SELECT * FROM user WHERE id = :id")
     fun getUser(id: Int): UserEntity
 
-    // Verificação de autenticidade (email e senha) pelo id retornado
-    @Query("SELECT id FROM user WHERE email = :email and password = :password")
-    fun login(email: String, password: String): Int
+    @Query("""SELECT * FROM user
+    WHERE email = :email
+    AND hashPassword = :hashPassword
+    LIMIT 1""")
+    fun verifyEmailAndPassword(email: String, hashPassword: String) : UserEntity
 }
