@@ -43,26 +43,39 @@ GreenMindProject/
         └── github/
             └── rafaabrito/
                 └── projectgreenmind/
-                    ├── data/              # Camada de Dados (Persistência)
-                    │   ├── db/            # Base de Dados (Room)
-                    │   │   └── GreenMindDatabase.kt
-                    │   ├── dao/           # Data Access Objects
-                    │   │   └── UserDao.kt
-                    │   ├── repository/    # Repositórios (Abstração da fonte de dados)
-                    │   │   └── UserRepository.kt
-                    │   └── model/         # Entidades do Banco de Dados
-                    │       └── UserEntity.kt
-                    ├── model/             # Modelos de Domínio (Objetos de Negócio)
-                    │   ├── User.kt
-                    │   └── ... (EcoPoint.kt, DailyTip.kt)
-                    └── ui/                # Camada de Apresentação (UI)
-                        ├── components/    # Componentes reutilizáveis do Compose
+                    ├── data/            # Camada de Acesso e Gerenciamento de Dados
+                    │   ├── db/          # Estrutura do Banco de Dados Local (e.g., Room)
+                    │   │   ├── dao/     # Data Access Objects: Interfaces para DB CRUD
+                    │   │   │   ├── CredentialsDao.kt
+                    │   │   │   └── UserDao.kt
+                    │   │   └── GreenMindDatabase.kt # Classe principal do DB
+                    │   ├── entities/    # Classes que mapeiam tabelas do DB (Modelos de Persistência)
+                    │   │   ├── CredentialsEntity.kt
+                    │   │   ├── FilesEntity.kt
+                    │   │   ├── LocalEcoEntity.kt
+                    │   │   ├── ScoreEntity.kt
+                    │   │   ├── TasksEntity.kt
+                    │   │   ├── TasksProgressEntity.kt
+                    │   │   └── UserEntity.kt
+                    │   ├── model/       # Modelos de Domínio/Negócio (Objetos de Negócio)
+                    │   │   └── User.kt
+                    │   └── repository/  # Repositórios: Intermediadores entre UI/Logic e Fontes de Dados
+                    │       └── UserRepository.kt
+                    └── ui/              # Camada de Apresentação e Interface do Usuário
+                        ├── components/  # Elementos de UI Reutilizáveis (Widgets/Composables)
                         │   ├── LoginTextField.kt
                         │   └── SocialMediaLogin.kt
-                        ├── viewmodel/     # ViewModels (Lógica de Apresentação)
-                        │   └── MainViewModel.kt
-                        ├── screens/       # Telas principais (e.g., MapScreen.kt, HomeScreen.kt)
-                        └── MainActivity.kt
+                        ├── registration/  # Lógica/Fluxos específicos para Registro (Pasta Vazia)
+                        └── screens/       # Telas Principais da Aplicação (Views/Composables de Tela)
+                            ├── CommunityScreen.kt
+                            ├── EcoScreen.kt
+                            ├── EcoTasksScreen.kt
+                            ├── HomeScreen.kt
+                            ├── LoginScreen.kt
+                            ├── PresentationScreen.kt
+                            ├── ProfileScreen.kt
+                            ├── RankingScreen.kt
+                            └── RegisterScreen.kt
 ```
 
 ###  📚 Dependências (Libraries)
