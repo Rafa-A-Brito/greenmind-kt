@@ -2,14 +2,14 @@
 
 ### ✨ Visão Geral do Projeto
 
-O **GreenMind** é um aplicativo móvel desenvolvido para atuar como uma ferramenta prática e educativa na promoção da conscientização e sustentabilidade ambiental.
+O GreenMind é um aplicativo _mobile_ desenvolvido para atuar como uma ferramenta prática e educativa na promoção da sustentabilidade ambiental e incentivo de uma mente sustentável.
 
-Este projeto busca gamificar a adoção de hábitos sustentáveis e facilitar a ação direta do usuário.
+Este projeto busca utilizar da gamificação para que haja a adesão de hábitos sustentáveis a fim de facilitar a ação direta do usuário.
 
-**Recursos Principais:**
+**Recursos:**
 
-* 🗺️ **Localização:** Integração de Mapas (via OSMDroid) para localização de Ecopontos, Pontos de Coleta Seletiva ou ONGs ambientais próximos, oferecendo rotas otimizadas.
-* 📚 **Conhecimento Diário:** Pop-ups ou cards informativos diários com dicas de sustentabilidade, curiosidades ambientais e fatos relevantes.
+* 🗺️ **Localização:** Integração de Mapa (OSM Android) para localização de Ecopontos, oferecendo melhores referências para rotas.
+* 📚 **Conhecimento Diário:** Cards informativos diários com dicas de sustentabilidade, curiosidades ambientais e outros fatos.
 * 🔥 **Gamificação e Engajamento:** Sistema de Ofensivas (_streaks_) para incentivar a interação contínua e a manutenção de uma rotina de aprendizado e ação.
 * 👤 **rogresso Procedural:** Funcionalidade para o usuário registrar e monitorar suas ações ambientais (ex: descarte correto, redução de consumo, participação em desafios).
 
@@ -17,10 +17,9 @@ Este projeto busca gamificar a adoção de hábitos sustentáveis e facilitar a 
 
 Para tornar o GreenMind mais completo e engajador, serão consideradas as seguintes funcionalidades:
 
-1.  **Pontuação e Nivelamento:** Sistema de pontos para gamificar a experiência e aumentar a retenção.
-2.  **Registro de Descarte:** Ferramenta para registrar o volume e tipo de resíduos descartados em Ecopontos.
-3.  **Desafios Ambientais:** Metas semanais ou mensais para incentivar práticas sustentáveis.
-4.  **Avaliação de Ecopontos:** Sistema de feedback da comunidade sobre a qualidade e acessibilidade dos pontos de coleta.
+1.  **Pontuação e Nivelamento:** Sistema de pontos para engajar o usuário e promover competitividade.
+2.  **Desafios Ambientais:** Metas semanais ou mensais para incentivar práticas sustentáveis.
+3.  **Avaliação de Ecopontos:** Sistema de feedback da comunidade sobre a qualidade e acessibilidade dos pontos de coleta.
 
 ---
 
