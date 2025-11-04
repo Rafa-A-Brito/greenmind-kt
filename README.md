@@ -1,26 +1,25 @@
 # 🧠 App GreenMind 🌳
 
-### ✨ Visão Geral do Projeto
+### 🔎 Visão Geral do Projeto
 
-O **GreenMind** é um aplicativo móvel desenvolvido para atuar como uma ferramenta prática e educativa na promoção da conscientização e sustentabilidade ambiental.
+O GreenMind é um aplicativo _mobile_ desenvolvido para atuar como uma ferramenta prática e educativa na promoção da sustentabilidade ambiental e incentivo de uma mente sustentável.
 
-Este projeto busca gamificar a adoção de hábitos sustentáveis e facilitar a ação direta do usuário.
+Este projeto busca utilizar da gamificação para que haja a adesão de hábitos sustentáveis a fim de facilitar a ação direta do usuário.
 
-**Recursos Principais:**
+**Recursos:**
 
-* 🗺️ **Localização:** Integração de Mapas (via OSMDroid) para localização de Ecopontos, Pontos de Coleta Seletiva ou ONGs ambientais próximos, oferecendo rotas otimizadas.
-* 📚 **Conhecimento Diário:** Pop-ups ou cards informativos diários com dicas de sustentabilidade, curiosidades ambientais e fatos relevantes.
+* 🗺️ **Localização:** Integração de Mapa (OSM Android) para localização de Ecopontos, oferecendo melhores referências para rotas.
+* 📚 **Conhecimento Diário:** Cards informativos diários com dicas de sustentabilidade, curiosidades ambientais e outros fatos.
 * 🔥 **Gamificação e Engajamento:** Sistema de Ofensivas (_streaks_) para incentivar a interação contínua e a manutenção de uma rotina de aprendizado e ação.
-* 👤 **rogresso Procedural:** Funcionalidade para o usuário registrar e monitorar suas ações ambientais (ex: descarte correto, redução de consumo, participação em desafios).
+* 👤 **Progresso Procedural:** Funcionalidade para o usuário registrar e monitorar suas ações ambientais (ex: descarte correto, redução de consumo, participação em desafios).
 
 ###  💡 Ideias para Aprimoramento
 
 Para tornar o GreenMind mais completo e engajador, serão consideradas as seguintes funcionalidades:
 
-1.  **Pontuação e Nivelamento:** Sistema de pontos para gamificar a experiência e aumentar a retenção.
-2.  **Registro de Descarte:** Ferramenta para registrar o volume e tipo de resíduos descartados em Ecopontos.
-3.  **Desafios Ambientais:** Metas semanais ou mensais para incentivar práticas sustentáveis.
-4.  **Avaliação de Ecopontos:** Sistema de feedback da comunidade sobre a qualidade e acessibilidade dos pontos de coleta.
+1.  **Pontuação e Nivelamento:** Sistema de pontos para engajar o usuário e promover competitividade.
+2.  **Desafios Ambientais:** Metas semanais ou mensais para incentivar práticas sustentáveis.
+3.  **Avaliação de Ecopontos:** Sistema de feedback da comunidade sobre a qualidade e acessibilidade dos pontos de coleta.
 
 ---
 
@@ -143,80 +142,70 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 ### 🗺️ RoadMap — App de Conscientização Ambiental Gamificado
 
 #### 🌱 Fase 1: Concepção e MVP(_Minimum Viable Product_)
-**Objetivo:** Validar a ideia central e entregar uma versão funcional com o essencial para melhor atingir o público.  
+**Objetivo:** Validar a ideia central e entregar uma versão funcional com o essencial para melhor atingir o público.
 
 **Principais entregas:**
-- 💬 **Pesquisa e definição de público-alvo.**  
-- 🌍 **Proposta de valor:** engajar o usuário em práticas sustentáveis.  
-- 🧩 **Protótipo e design inicial (UI/UX)** com visual ecológico e acessível.  
-  - 🎨 **Cores (ARGB):**
-    - `#FFF1F5F9` – **LightBlueWhite** → fundo neutro e suave.  
-    - `#DB151C24` – **DarkGrayBlue** → tom azulado-acinzentado.  
-    - `#FF303338` – **DarkGray** → cor base para textos e ícones escuros.  
-    - `#BA787575` – **LightGray** → elementos secundários e bordas sutis.  
-    - `#59000000` – **MinimumBlack** → sombras e sobreposições transparentes (profundidade).  
-    - `#FF03FF0B` – **Green** → destaque principal, representa ações sustentáveis e sucesso.  
-    - `#A67FFFA5` – **MintLightGreen** → cor suave para _backgrounds_.  
-    - `#3335C230` – **MediumLightGreen** → elementos interativos.  
-    - `#FF0C885B` – **ForestGreen** → cor referente a ações ecológicas.  
-    - `#FF34C759` – **LimeGreen** → indicadores de progresso e status ativo.  
-    
+- 💬 **Pesquisa e definição de público-alvo.**
+- 🌍 **Proposta de valor:** engajar o usuário em práticas sustentáveis.
+- 🧩 **Protótipo e design inicial (UI/UX)** com visual ecológico e acessível.
+    - 🎨 **Cores (ARGB):**
+     
 - ⚙️ **Funcionalidades básicas:**
-  - 👤 Cadastro e login de usuário.  
-  - 🏆 Sistema de pontos e conquistas.  
-  - 🌿 Missões sustentáveis que possibilitam o progresso e aumento de nível/XP.  
-  - 📊 Dashboard de progresso ambiental.  
+    - 👤 Cadastro e login de usuário.
+    - 🏆 Sistema de pontos e conquistas.
+    - 🌿 Missões sustentáveis que possibilitam o progresso e aumento de nível/XP.
+    - 📊 Dashboard de progresso ambiental.
 
 ---
 
 #### 🌍 Fase 2: Expansão e Engajamento
-**Objetivo:** Aumentar retenção e consolidar a mecânica de gamificação.  
+**Objetivo:** Aumentar retenção e consolidar a mecânica de gamificação.
 
 **Principais entregas:**
-- 🎯 Sistema de níveis e ranking entre amigos ou comunidade.  
-- 📚 Biblioteca de conteúdos educativos (artigos, vídeos curtos, curiosidades).  
-- 🤝 Desafios colaborativos (ex.: “Mutirão de limpeza local”).  
-- 🔔 Notificações e lembretes inteligentes.  
-- 🧠 Feedback e ajustes baseados em dados reais de uso.  
-- 📱 Integração com redes sociais para compartilhamento de conquistas.  
-- 🌐 Site para hospedagem e apresentação do app.  
+- 🎯 Sistema de níveis e ranking entre amigos ou comunidade.
+- 📚 Biblioteca de conteúdos educativos (artigos, vídeos curtos, curiosidades).
+- 🤝 Desafios colaborativos (ex.: “Mutirão de limpeza local”).
+- 🔔 Notificações e lembretes inteligentes.
+- 🧠 Feedback e ajustes baseados em dados reais de uso.
+- 📱 Integração com redes sociais para compartilhamento de conquistas.
+- 🌐 Site para hospedagem e apresentação do app.
 
 ---
 
-#### 🌿 Fase 3: Impacto Real 
-**Objetivo:** Gerar impacto ambiental mensurável e atrair parceiros estratégicos.  
+#### 🌿 Fase 3: Impacto Real
+**Objetivo:** Gerar impacto ambiental mensurável e atrair parceiros estratégicos.
 
 **Principais entregas:**
-- 🏫 Parcerias com ONGs, escolas e prefeituras.  
-- 📣 _Merchandising_ através de mídias sociais de recompensas.  
-- 📈 Sistema de métricas ambientais.  
-- 💚 Campanhas de marketing verde e conscientização.  
+- 🏫 Parcerias com ONGs, escolas e prefeituras.
+- 📣 _Merchandising_ através de mídias sociais de recompensas.
+- 📈 Sistema de métricas ambientais.
+- 💚 Campanhas de marketing verde e conscientização.
 
 ---
 
-#### 🌎 Fase 4: Escalabilidade e Comunidade 
-**Objetivo:** Consolidar a comunidade e expandir o alcance do app.  
+#### 🌎 Fase 4: Escalabilidade e Comunidade
+**Objetivo:** Consolidar a comunidade e expandir o alcance do app.
 
 **Principais entregas:**
-- 🏅 Gamificação avançada: badges raros, desafios diários e ranking global.  
-- 💬 Recursos sociais: fóruns, grupos locais e feed de ações.  
-- 💻 Versão Web e integração com IoT.  
-- 🌏 Internacionalização (traduções e campanhas globais).  
+- 🏅 Gamificação avançada: badges raros, desafios diários e ranking global.
+- 💬 Recursos sociais: fóruns, grupos locais e feed de ações.
+- 💻 Versão Web e integração com IoT.
+- 🌏 Internacionalização (traduções e campanhas globais).
 
 ---
 
-#### 🌟 Fase 5: Sustentabilidade e Aprimoramento 
-**Objetivo:** Manter o engajamento e aprimorar continuamente o app e suas funcionalidades.  
+#### 🌟 Fase 5: Sustentabilidade e Aprimoramento
+**Objetivo:** Manter o engajamento e aprimorar continuamente o app e suas funcionalidades.
 
 **Principais entregas:**
-- 🤖 IA para recomendações sustentáveis personalizadas.  
-- 🔁 Gamificação dinâmica.  
-- 🪴 Programas de certificação de impacto positivo.  
-- 🧭 Avaliação contínua de impacto social e ambiental.  
+- 🤖 IA para recomendações sustentáveis personalizadas.
+- 🔁 Gamificação dinâmica.
+- 🪴 Programas de certificação de impacto positivo.
+- 🧭 Avaliação contínua de impacto social e ambiental.
 
 ---
 
-`💡 Dica:` Este roadmap é flexível, ajustado conforme métricas de adoção, *feedbacks* e novas oportunidades de impacto sustentável.
+> 💡 **Nota**: Este roadmap é flexível, ajustado conforme métricas de adoção, *feedbacks* e novas oportunidades de impacto sustentável.
 
 ---
 

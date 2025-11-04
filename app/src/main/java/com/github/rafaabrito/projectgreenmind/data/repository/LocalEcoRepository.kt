@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind.data.dao
+package com.github.rafaabrito.projectgreenmind.data.repository
 
 
 
