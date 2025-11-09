@@ -82,7 +82,7 @@ GreenMindProject/
 
 ```bash
 dependencies {
-    // Splash Screen API
+     // Splash Screen API
     implementation(libs.androidx.core.splashscreen)
 
     // Room Configure
@@ -91,6 +91,14 @@ dependencies {
 
     // Window Size Class
     implementation(libs.material3.window.size.class1)
+
+    // Animated Bottom Bar
+    implementation(libs.animated.navigation.bar)
+
+    // Ícones padrão do Material (compatíveis com Material 3)
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.androidx.material3)
 
     // RecylerView
     implementation(libs.androidx.recyclerview)
@@ -103,6 +111,9 @@ dependencies {
 
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    // Serializable
+    implementation(libs.kotlinx.serialization.json)
 
     // ViewModel Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -118,7 +129,6 @@ dependencies {
 
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
-
 }
 ```
 
@@ -147,9 +157,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 **Principais entregas:**
 - 💬 **Pesquisa e definição de público-alvo.**
 - 🌍 **Proposta de valor:** engajar o usuário em práticas sustentáveis.
-- 🧩 **Protótipo e design inicial (UI/UX)** com visual ecológico e acessível.
-    - 🎨 **Cores (ARGB):**
-     
+- 🧩 **Protótipo e design inicial (UI/UX)** com visual ecológico e acessível.     
 - ⚙️ **Funcionalidades básicas:**
     - 👤 Cadastro e login de usuário.
     - 🏆 Sistema de pontos e conquistas.
