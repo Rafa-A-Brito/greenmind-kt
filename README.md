@@ -26,7 +26,7 @@ Para tornar o GreenMind mais completo e engajador, serão consideradas as seguin
 ### ⚙️ Configuração e Arquitetura
 ![KSP](https://img.shields.io/badge/KSP-2.2.1-7f5ab8?style=flat&logo=kotlin)
 ![AGP](https://img.shields.io/badge/AGP-8.13.0-28a167?style=flat&logo=android)
-![Compose](https://img.shields.io/badge/Compose-1.7.0-1ba1f5?style=flat&logo=kotlin&logoColor=44eb7e)
+![Compose](https://img.shields.io/badge/Compose-1.7.0-4d94f3?style=flat&logo=kotlin)
 ![Room](https://img.shields.io/badge/Room-2.8.0-4caf50?style=flat&logo=android)
 
 O projeto segue a arquitetura **MVVM (Model-View-ViewModel)**, utilizando Jetpack Compose para o desenvolvimento da interface de usuário moderna e reativa.
