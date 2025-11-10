@@ -4,5 +4,6 @@ import androidx.room.Dao
 
 @Dao
 interface TasksProgressDao {
-    //
+     // Atualização de progresso da tarefa 
+
 }

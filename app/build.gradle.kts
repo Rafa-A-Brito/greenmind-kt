@@ -84,9 +84,12 @@ dependencies {
 
     // Ícones padrão do Material (compatíveis com Material 3)
     implementation("androidx.compose.material:material-icons-extended")
-    
     implementation("androidx.compose.material3:material3")
 
+    // Testing Database
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    
     // RecylerView
     implementation(libs.androidx.recyclerview)
 
