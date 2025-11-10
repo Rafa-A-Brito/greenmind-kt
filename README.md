@@ -230,6 +230,8 @@ Desde já, sou grato pelo apoio e suporte das plataformas e ferramentas que poss
 ### 📞 Contato
 
 [![Instagram Badge](https://img.shields.io/badge/greenmind_app-%23E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/greenmind_app/)
+
+
 [![Website Badge](https://img.shields.io/badge/Conheça%20o%20website-%2300A859?logo=react&logoColor=blue&color=403f3e)](https://bit.ly/greenmind-website)
 
 
