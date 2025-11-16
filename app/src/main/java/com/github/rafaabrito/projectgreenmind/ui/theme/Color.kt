@@ -23,7 +23,7 @@ val LightGray = Color(0xBA787575)
 val MinimumGray = Color(0xFF49454F)
 
 val MinimumBlack = Color(0x59000000)
-val MediumBlack = Color(0x94151C24)
+val MediumBlack = Color(0xCD24333E)
 val Green = Color(0xFF03FF0B)
 val GrotesqueGreen = Color(0xED57EF7F)
 val MintLightGreen = Color(0xA67FFFA5)
