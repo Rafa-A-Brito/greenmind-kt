@@ -15,7 +15,7 @@ interface LocalEcoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(localEco: LocalEcoEntity)
 
-    //  Atualização de endereço conforme mudanças de localização
+    // Atualização de endereço conforme mudanças de localização
     @Update
     suspend fun update(localEco: LocalEcoEntity)
 
