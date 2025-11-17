@@ -1,7 +1,10 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,33 +49,34 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.ScreenOrientation
 import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit) {
     Surface {
         if (ScreenOrientation == Configuration.ORIENTATION_PORTRAIT){
-            PortraitLoginScreen()
+            PortraitLoginScreen(onLoginSuccess = onLoginSuccess, onNavigateToRegister = onNavigateToRegister)
         }else{
-            PortraitLoginScreen()
+            PortraitLoginScreen(onLoginSuccess = onLoginSuccess, onNavigateToRegister = onNavigateToRegister)
         }
     }
 }
 
 @Composable
-private fun LandscapeLoginScreen(){
+private fun LandscapeLoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit){
     Column(
         modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = 30.dp),
+            .fillMaxSize()
+            .padding(horizontal = 30.dp),
         verticalArrangement = Arrangement.Center)
     {
-        LoginSection()
+        LoginSection(onLoginSuccess = onLoginSuccess)
         SocialMediaSection()
     }
 }
 
 @Composable
-private fun PortraitLoginScreen(){
+private fun PortraitLoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit){
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ){
         // Possível estruturação de alteração de tema
@@ -82,7 +87,7 @@ private fun PortraitLoginScreen(){
             .fillMaxSize()
             .padding(horizontal = 30.dp))
         {
-            LoginSection()
+            LoginSection(onLoginSuccess = onLoginSuccess)
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
 
             DividerText()
@@ -91,7 +96,7 @@ private fun PortraitLoginScreen(){
 
         }
         Spacer( modifier = Modifier.weight(0.8f))
-        CreateAccount()
+        CreateAccount(onNavigateToRegister = onNavigateToRegister)
         Spacer( modifier = Modifier.weight(0.3f))
 
     }
@@ -106,7 +111,7 @@ private fun TopSection() {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .height((screenHeight / 2.12 ).dp),
+                .height((screenHeight / 2.12).dp),
             painter = painterResource(id = R.drawable.shape),
             contentDescription = null,
             contentScale = ContentScale.FillBounds
@@ -149,7 +154,7 @@ private fun TopSection() {
     }
 }
 @Composable
-private fun LoginSection(){
+private fun LoginSection(onLoginSuccess:() -> Unit){
     LoginTextField(
         label = "Email",
         trailing = "",
@@ -161,9 +166,10 @@ private fun LoginSection(){
         modifier = Modifier.fillMaxWidth())
     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
     Button(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .height(MaterialTheme.dimens.buttonHeight),
-        onClick = {},
+        onClick = onLoginSuccess,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Black,
             contentColor = Color.White
@@ -224,38 +230,41 @@ private fun SocialMediaSection(){
 }
 
 @Composable
-private fun ColumnScope.CreateAccount(){
+private fun ColumnScope.CreateAccount(
+    onNavigateToRegister: () -> Unit // Mantém o callback
+){
+    Row(
+        modifier = Modifier
+            .align(alignment = Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Não possue uma conta?",
+            style = MaterialTheme.typography.labelMedium.copy(
+                color = Color(0xFF3B3B3B),
+                fontFamily = Roboto,
+                fontWeight = FontWeight.Normal
+            )
+        )
+
+        Spacer(modifier = Modifier.width(4.dp)) // Adiciona um pequeno espaço
+
         Text(
             modifier = Modifier
-                .align(alignment = Alignment.CenterHorizontally),
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        color = Color(0xFF3B3B3B),
-                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                        fontFamily = Roboto,
-                        fontWeight = FontWeight.Normal
-                    )
-                ){
-                    append("Não possue uma conta?")
-                }
-                withStyle(
-                    style = SpanStyle(
-                        color = Color.Black,
-                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                        fontFamily = Roboto,
-                        fontWeight = FontWeight.Medium
-                    )
-                ){
-                    append(" ")
-                    append("Registre-se agora.")
-                }
-            }
+                .clickable { onNavigateToRegister() }
+                .padding(vertical = 4.dp),
+            text = "Registre-se agora.",
+            style = MaterialTheme.typography.labelMedium.copy(
+                color = Color.Black,
+                fontFamily = Roboto,
+                fontWeight = FontWeight.Medium
+            )
         )
     }
+}
 
 @Preview
 @Composable
 private fun LoginPreview() {
-    LoginScreen()
+    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = { })
 }

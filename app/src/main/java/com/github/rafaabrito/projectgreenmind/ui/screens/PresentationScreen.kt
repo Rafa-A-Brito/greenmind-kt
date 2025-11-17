@@ -230,7 +230,7 @@ fun ContentPresentation() {
                     ),
                 )
                 .width(220.dp)
-                .height(90.dp),
+                .height(105.dp),
         ) {
             Box(
                 modifier = Modifier
