@@ -157,11 +157,12 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 **Principais entregas:**
 - 💬 **Pesquisa e definição de público-alvo.**
 - 🌍 **Proposta de valor:** engajar o usuário em práticas sustentáveis.
-- 🧩 **Protótipo e design inicial (UI/UX)** com visual ecológico e acessível.
+- 🧩 **Protótipo e design inicial (UI/UX)** com visual ecológico e acessível.     
 - ⚙️ **Funcionalidades básicas:**
     - 👤 Cadastro e login de usuário.
     - 🏆 Sistema de pontos e conquistas.
     - 🌿 Missões sustentáveis que possibilitam o progresso e aumento de nível/XP.
+    - 📊 Dashboard de progresso ambiental.
 
 ---
 
@@ -170,7 +171,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 
 **Principais entregas:**
 - 🎯 Sistema de níveis e ranking entre amigos ou comunidade.
-- 📚 Biblioteca de conteúdos educativos.
+- 📚 Biblioteca de conteúdos educativos (artigos, vídeos curtos, curiosidades).
 - 🤝 Desafios colaborativos.
 - 🔔 Notificações e lembretes inteligentes.
 - 🧠 Feedback e ajustes baseados em dados reais de uso.
@@ -196,7 +197,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 **Principais entregas:**
 - 🏅 Gamificação avançada: badges raros, desafios diários e ranking global.
 - 💬 Recursos sociais: fóruns, grupos locais e feed de ações.
-- 💻 Versão Web.
+- 💻 Versão Web e integração com IoT.
 - 🌏 Internacionalização (traduções e campanhas globais).
 
 ---
@@ -228,10 +229,10 @@ Desde já, sou grato pelo apoio e suporte das plataformas e ferramentas que poss
 
 ### 📞 Contato
 
-> [![Instagram Badge](https://img.shields.io/badge/greenmind_app-%23E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/app_greenmind_/)
+> [![Instagram Badge](https://img.shields.io/badge/greenmind_app-%23E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/greenmind_app/)
 
 
-> [![Website Badge](https://img.shields.io/badge/Conheça%20o%20website-%2300A859?logo=react&logoColor=blue&color=403f3e)](https://bit.ly/greenmind-react)
+> [![Website Badge](https://img.shields.io/badge/Conheça%20o%20website-%2300A859?logo=react&logoColor=blue&color=403f3e)](https://bit.ly/greenmind-website)
 
 
 

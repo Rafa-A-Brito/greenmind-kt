@@ -34,7 +34,7 @@ class LocalEcoRepository(
     // ----------------------------------------------------------------------
     // --- 2. Funções de Lógica de Negócio (Geocodificação/Busca) ---
     // ----------------------------------------------------------------------
-
+    
     /**
      * Tenta buscar coordenadas para um endereço e salvar como LocalEcoEntity.
      * Esta função seria o ponto de contato com a API do OSM.
@@ -44,10 +44,10 @@ class LocalEcoRepository(
      */
     suspend fun geocodeAndSaveLocalEco(address: String, name: String): LocalEcoEntity? {
         // Exemplo de lógica (requer uma chamada de rede real)
-
+        
         // 1. Chamar o serviço OSM para obter latitude/longitude
         // val coordinates = osmService.getCoordinatesForAddress(address)
-
+        
         /* if (coordinates != null) {
             // 2. Criar a entidade e preencher os demais campos (reverse geocoding)
             val newEntity = LocalEcoEntity(
@@ -61,7 +61,7 @@ class LocalEcoRepository(
             return newEntity
         }
         */
-
+        
         // Retorno de exemplo (REMOVER EM PRODUÇÃO)
         if (address.isNotEmpty()) {
             val exampleEntity = LocalEcoEntity(
