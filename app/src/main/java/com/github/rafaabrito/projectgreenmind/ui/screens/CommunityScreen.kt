@@ -167,7 +167,7 @@ fun CommunitySearchBar() {
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Placeholder/Texto de Busca
+        // Texto de Busca
         Text(
             text = "Pesquise ou filtre os comentários ...",
             color = Color.White,
