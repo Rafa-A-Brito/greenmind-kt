@@ -20,11 +20,10 @@ interface CredentialsDao {
 
     // Verificação de autenticidade (email e senha) pelo id retornado
     @Query(""" SELECT * FROM credentials WHERE userId = :userId AND authId = :authId LIMIT 1 """)
-    suspend fun verifyAuthCredential(id : Int, userId: Int, authId : String)
+    suspend fun verifyAuthCredential(userId: Int, authId : String) : CredentialsEntity?
+?
 
     // Seleção da lista de credenciais de usuarios
     @Query("Select * from credentials order by id ASC")
-    fun getAllCredentials(id: Int) : LiveData<List<CredentialsEntity>>
-
-
+    fun getAllCredentials() : LiveData<List<CredentialsEntity>>
 }
