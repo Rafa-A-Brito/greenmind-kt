@@ -94,32 +94,24 @@ private val mockTasks = listOf(
 )
 @Composable
 fun EcoTasksScreen(){
-    Surface {
-        Scaffold(
-            topBar = { TopBarComponent() },
-            bottomBar = { BottomBarComponent() }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                EcoTasksTopSection()
-                Spacer(modifier = Modifier.height(16.dp))
-                EcoTasksSearchBar()
-                Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 15.dp)
+        ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        EcoTasksTopSection()
+        Spacer(modifier = Modifier.height(16.dp))
+        EcoTasksSearchBar()
+        Spacer(modifier = Modifier.height(16.dp))
 
-                // Adicionado o Container das Tarefas (LazyColumn)
-                EcoTasksContainer()
+        // Adicionado o Container das Tarefas (LazyColumn)
+        EcoTasksContainer()
 
-                Spacer(modifier = Modifier.height(16.dp))
-                // Card de Dicas
-                TipsTasks()
-            }
+        Spacer(modifier = Modifier.height(16.dp))
+        // Card de Dicas
+        TipsTasks()
         }
-    }
 }
 
 @Composable

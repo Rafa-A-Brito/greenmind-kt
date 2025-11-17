@@ -56,38 +56,33 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.SeaGreen
 
 @Composable
 fun CommunityScreen() {
-    Surface {
-        Scaffold(
-            topBar = { TopBarComponent() },
-            bottomBar = { BottomBarComponent() }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                CommunityTopSection()
-                Spacer(modifier = Modifier.height(16.dp))
-                CommunitySearchBar()
-                Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 15.dp)
+        ) {
+            TopBarComponent()
+            Spacer(modifier = Modifier.height(16.dp))
+            CommunityTopSection()
+            Spacer(modifier = Modifier.height(16.dp))
+            CommunitySearchBar()
+            Spacer(modifier = Modifier.height(16.dp))
 
-                LazyColumn(
+            LazyColumn(
                     modifier = Modifier.weight(1f)
-                ) {
-                    item {
-                        CommunityMessageCard(
-                            userName = "Mauricio Henrique",
-                            message = "Você viu que a associação de moradores vai começar aquele projeto de hortas comunitárias? Achei uma ideia excelente! Além de ajudar na alimentação, é uma forma de incentivar a sustentabilidade aqui no bairro."
+            ) {
+                item {
+                    CommunityMessageCard(
+                        userName = "Mauricio Henrique",
+                        message = "Você viu que a associação de moradores vai começar aquele projeto de hortas comunitárias? Achei uma ideia excelente! Além de ajudar na alimentação, é uma forma de incentivar a sustentabilidade aqui no bairro."
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
 
-                    item {
-                        CommunityMessageCard(
-                            userName = "Lorena Alves",
-                            message = "Sim, eu vi! Fiquei super empolgada. Acho importante a gente pensar mais no meio ambiente e em pequenas atitudes podem fazer diferença. Cultivar alimentos sem agrotóxicos, reutilizar materiais, fazer compostagem... tudo isso ajuda muito."
+                item {
+                    CommunityMessageCard(
+                        userName = "Lorena Alves",
+                        message = "Sim, eu vi! Fiquei super empolgada. Acho importante a gente pensar mais no meio ambiente e em pequenas atitudes podem fazer diferença. Cultivar alimentos sem agrotóxicos, reutilizar materiais, fazer compostagem... tudo isso ajuda muito."
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -101,8 +96,6 @@ fun CommunityScreen() {
                 CommunityUserKeyboard()
             }
         }
-    }
-}
 
 @Composable
 fun CommunityTopSection() {

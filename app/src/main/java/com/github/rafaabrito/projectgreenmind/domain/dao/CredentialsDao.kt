@@ -1,3 +1,4 @@
+
 package com.github.rafaabrito.projectgreenmind.domain.dao
 
 import androidx.lifecycle.LiveData
@@ -14,14 +15,17 @@ interface CredentialsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveCredential(credentials: CredentialsEntity)
 
+    // Busca credencial pelo ID do usuário
+    @Query("SELECT * FROM credentials WHERE userId = :userId LIMIT 1")
+    suspend fun getCredentialByUserId(userId: Int): CredentialsEntity?
+
+    // Buscar credencial pelo ID de autenticação
+    @Query("SELECT * FROM credentials WHERE authId = :authId LIMIT 1")
+    suspend fun getCredentialByAuthId(authId: String): CredentialsEntity?
+
     // Filtragem do usuário pelo id
     @Query("SELECT * FROM credentials WHERE id = :id")
-    fun getCredential(id: Int): CredentialsEntity
-
-    // Verificação de autenticidade (email e senha) pelo id retornado
-    @Query(""" SELECT * FROM credentials WHERE userId = :userId AND authId = :authId LIMIT 1 """)
-    suspend fun verifyAuthCredential(userId: Int, authId : String) : CredentialsEntity?
-?
+    suspend fun getCredential(id: Int): CredentialsEntity?
 
     // Seleção da lista de credenciais de usuarios
     @Query("Select * from credentials order by id ASC")

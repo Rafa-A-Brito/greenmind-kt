@@ -63,28 +63,19 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 
 @Composable
 fun EcoScreen() {
-    Surface {
-        Scaffold(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(15.dp),
-            topBar = { TopBarComponent() },
-            bottomBar = { BottomBarComponent() }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                .padding(15.dp)
+        ) {
+            TopBarComponent()
+            Spacer(modifier = Modifier.height(16.dp))
 
-                EcoLocalTopSection()
-                Spacer(modifier = Modifier.height(20.dp))
-                EcoLocalBottomSection()
-            }
+            EcoLocalTopSection()
+            Spacer(modifier = Modifier.height(20.dp))
+            EcoLocalBottomSection()
         }
     }
-}
 
 @Composable
 fun EcoLocalTopSection() {

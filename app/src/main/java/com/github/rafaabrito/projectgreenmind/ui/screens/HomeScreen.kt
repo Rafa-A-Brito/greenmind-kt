@@ -76,22 +76,12 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.SeafomGreen
 @Composable
 fun HomeScreen() {
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize()
-                .padding(15.dp),
-            topBar = {TopBarComponent()},
-            bottomBar = { BottomBarComponent() }
-        )
-        { paddingValues ->
-            Column(
-                modifier = Modifier.padding(paddingValues)
-            ) {
-
-            }
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp)
+    ){
+        TopBarComponent()
     }
 }
 
