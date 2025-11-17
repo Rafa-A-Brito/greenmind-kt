@@ -12,7 +12,7 @@ interface UserDao {
     fun save(user: UserEntity)
 
     // Filtragem do usuário pelo id
-    @Query("SELECT * FROM user WHERE id = :id")
+    @Query("SELECT * FROM user WHERE userId = :id")
     fun getUser(id: Int): UserEntity
 
     @Query("""SELECT * FROM user

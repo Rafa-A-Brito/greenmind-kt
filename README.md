@@ -8,10 +8,10 @@ Este projeto busca utilizar da gamificação para que haja a adesão de hábitos
 
 **Recursos:**
 
-* 🗺️ **Localização:** Integração de Mapa (OSM Android) para localização de Ecopontos, oferecendo melhores referências para rotas.
+* 🗺️ **Localização:** Integração de mapas (OSM Android) para localização de Ecopontos, oferecendo melhores referências.
 * 📚 **Conhecimento Diário:** Cards informativos diários com dicas de sustentabilidade, curiosidades ambientais e outros fatos.
 * 🔥 **Gamificação e Engajamento:** Sistema de Ofensivas (_streaks_) para incentivar a interação contínua e a manutenção de uma rotina de aprendizado e ação.
-* 👤 **Progresso Procedural:** Funcionalidade para o usuário registrar e monitorar suas ações ambientais (ex: descarte correto, redução de consumo, participação em desafios).
+* 👤 **Progresso Procedural:** Funcionalidade para o usuário registrar e monitorar suas ações ambientais.
 
 ###  💡 Ideias para Aprimoramento
 
@@ -172,7 +172,7 @@ Este projeto mobile está licenciado sob a _MIT LICENSE_. Assim, é permitido o 
 **Principais entregas:**
 - 🎯 Sistema de níveis e ranking entre amigos ou comunidade.
 - 📚 Biblioteca de conteúdos educativos (artigos, vídeos curtos, curiosidades).
-- 🤝 Desafios colaborativos (ex.: “Mutirão de limpeza local”).
+- 🤝 Desafios colaborativos.
 - 🔔 Notificações e lembretes inteligentes.
 - 🧠 Feedback e ajustes baseados em dados reais de uso.
 - 📱 Integração com redes sociais para compartilhamento de conquistas.
@@ -226,6 +226,16 @@ Desde já, sou grato pelo apoio e suporte das plataformas e ferramentas que poss
 * **Kotlin:** A linguagem de programação moderna e concisa utilizada no projeto.
 
 ---
+
+### 📞 Contato
+
+[![Instagram Badge](https://img.shields.io/badge/greenmind_app-%23E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/greenmind_app/)
+
+
+[![Website Badge](https://img.shields.io/badge/Conheça%20o%20website-%2300A859?logo=react&logoColor=blue&color=403f3e)](https://bit.ly/greenmind-website)
+
+
+
 <div align=right>
     <p>
         Feito com 💚 e ☕ por Rafael Brito

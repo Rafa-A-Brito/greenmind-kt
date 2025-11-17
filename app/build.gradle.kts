@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.21"
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -80,13 +80,16 @@ dependencies {
     implementation(libs.material3.window.size.class1)
 
     // Animated Bottom Bar
-    implementation("com.exyte:animated-navigation-bar:1.0.0")
+    implementation(libs.animated.navigation.bar)
 
     // Ícones padrão do Material (compatíveis com Material 3)
-    implementation("androidx.compose.material:material-icons-extended")
-    
-    implementation("androidx.compose.material3:material3")
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.material3)
 
+    // Testing Database
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.junit)
+    
     // RecylerView
     implementation(libs.androidx.recyclerview)
 

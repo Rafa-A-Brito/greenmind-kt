@@ -11,7 +11,8 @@ import com.github.rafaabrito.projectgreenmind.R
 val Inter = FontFamily(
     listOf(
         Font(resId = R.font.inter_medium, weight = FontWeight.Medium  ),
-        Font(resId = R.font.inter_regular, weight = FontWeight.Normal  )
+        Font(resId = R.font.inter_regular, weight = FontWeight.Normal  ),
+        Font(resId = R.font.inter_semibold, weight = FontWeight.SemiBold  )
     )
 )
 

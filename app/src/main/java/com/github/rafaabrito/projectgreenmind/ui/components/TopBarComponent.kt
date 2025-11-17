@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.rafaabrito.projectgreenmind.R
@@ -53,7 +52,7 @@ fun TopBarComponent() {
             ) {
                 // Logo do App
                 Image(
-                    modifier = Modifier.size(45.dp)
+                    modifier = Modifier.size(50.dp)
                         .clip(CircleShape)
                         .background(MediumBlack),
                     painter = painterResource(R.drawable.logo),
@@ -87,21 +86,15 @@ fun TopBarComponent() {
                     .background(SeafomGreen, shape = RoundedCornerShape(5.dp))
                     .size(35.dp)
             ) {
-                IconButton( onClick = {}) {
+                IconButton(onClick = {}) {
                     Image(
                         modifier = Modifier.size(25.dp),
                         colorFilter = ColorFilter.tint(Color.Black),
                         painter = painterResource(R.drawable.hamburguer_icon),
                         contentDescription = null
-                        )
+                    )
                 }
             }
         }
     }
-}
-
-@Preview
-@Composable
-private fun TopBarPreview() {
-    TopBarComponent()
 }

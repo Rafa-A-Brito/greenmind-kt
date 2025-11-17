@@ -4,6 +4,8 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,9 +62,14 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import com.github.rafaabrito.projectgreenmind.ui.theme.ForestDarkGreen
+import com.github.rafaabrito.projectgreenmind.ui.theme.LimeGreenDarker
 
 @Composable
-fun PresentationScreen(){
+fun PresentationScreen(
+    onNavigateToHome: () -> Unit,
+    onExit: () -> Unit
+){
     Surface(
         color = DarkGrayBlue
     ) {
@@ -77,7 +84,7 @@ fun PresentationScreen(){
             Spacer(modifier = Modifier.height(35.dp))
             ContentPresentation()
             Spacer(modifier = Modifier.height(35.dp))
-            ContainerBottomText()
+            ContainerBottomText(onNavigateToHome, onExit)
         }
     }
 }
@@ -245,7 +252,24 @@ fun ContentPresentation() {
 }
 
 @Composable
-private fun ContainerBottomText() {
+private fun ContainerBottomText(
+    onNavigateToHome: () -> Unit, // Função para ir para Home
+    onExit: () -> Unit           // Função para sair do app
+) {
+    // Mudança de cor "Saída"
+    val exitInteractionSource = remember { MutableInteractionSource() }
+    val isExitPressed by exitInteractionSource.collectIsPressedAsState()
+
+    val exitTargetColor = if (isExitPressed) ForestDarkGreen else ForestGreen
+    val exitAnimatedColor by animateColorAsState(exitTargetColor, label = "ExitButtonColorAnimation")
+
+    // Mudança de cor "Começo"
+    val homeInteractionSource = remember { MutableInteractionSource() }
+    val isHomePressed by homeInteractionSource.collectIsPressedAsState()
+
+    val homeTargetColor = if (isHomePressed) LimeGreenDarker else LimeGreen
+    val homeAnimatedColor by animateColorAsState(homeTargetColor, label = "HomeButtonColorAnimation")
+
     Column(
         Modifier.fillMaxSize()
     ) {
@@ -254,8 +278,6 @@ private fun ContainerBottomText() {
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
         ) {
-
-
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp),
                         text = buildAnnotatedString{
@@ -303,9 +325,10 @@ private fun ContainerBottomText() {
             verticalAlignment = Alignment.Bottom
         ) {
             Button(
-                onClick = { },
+                onClick = onExit,
+                interactionSource = exitInteractionSource,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ForestGreen,
+                    containerColor = exitAnimatedColor,
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(4.dp),
@@ -319,9 +342,10 @@ private fun ContainerBottomText() {
             }
 
             Button(
-                onClick = {},
+                onClick = onNavigateToHome,
+                interactionSource = homeInteractionSource,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = LimeGreen,
+                    containerColor = homeAnimatedColor,
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(4.dp),
@@ -339,6 +363,9 @@ private fun ContainerBottomText() {
 
 @Preview
 @Composable
-private fun PresentationPreview() {
-    PresentationScreen()
+private fun PresentationPreview(
+    onNavigateToHome: () -> Unit = {},
+    onExit: () -> Unit = {}
+) {
+    PresentationScreen(onNavigateToHome = onNavigateToHome , onExit = onExit )
 }
