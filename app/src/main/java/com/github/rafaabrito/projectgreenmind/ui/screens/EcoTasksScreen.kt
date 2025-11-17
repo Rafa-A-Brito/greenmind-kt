@@ -211,10 +211,8 @@ fun EcoTasksSearchBar() {
 
 @Composable
 fun EcoTasksContainer() {
-    // LazyColumn para exibir a lista de cards de tarefas
     LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(mockTasks) { task ->
