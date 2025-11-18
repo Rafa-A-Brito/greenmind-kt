@@ -11,9 +11,6 @@ class LocalEcoRepository(
     private val localEcoDao: LocalEcoDao,
     // private val osmService: OsmService // Para lógica de rede, se aplicável
 ) {
-    // ----------------------------------------------------------------------
-    // --- 1. Funções de Persistência (Abstracting DAO) ---
-    // ----------------------------------------------------------------------
 
     fun getAllLocalEco(): Flow<List<LocalEcoEntity>> {
         return localEcoDao.getAllLocalEco()
@@ -31,17 +28,6 @@ class LocalEcoRepository(
         localEcoDao.delete(localEco)
     }
 
-    // ----------------------------------------------------------------------
-    // --- 2. Funções de Lógica de Negócio (Geocodificação/Busca) ---
-    // ----------------------------------------------------------------------
-    
-    /**
-     * Tenta buscar coordenadas para um endereço e salvar como LocalEcoEntity.
-     * Esta função seria o ponto de contato com a API do OSM.
-     * @param address O endereço completo (ex: "Rua X, 123, São Paulo")
-     * @param name Nome para o Ecoponto
-     * @return LocalEcoEntity se o endereço for encontrado e salvo.
-     */
     suspend fun geocodeAndSaveLocalEco(address: String, name: String): LocalEcoEntity? {
         // Exemplo de lógica (requer uma chamada de rede real)
         

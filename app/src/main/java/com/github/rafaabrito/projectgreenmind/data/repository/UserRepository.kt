@@ -1,14 +1,14 @@
 import com.github.rafaabrito.projectgreenmind.domain.dao.UserDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.CredentialsDao
 import com.github.rafaabrito.projectgreenmind.domain.entities.UserEntity
-import com.github.rafaabrito.projectgreenmind.domain.entities.CredentialsEntity // Import necessário para a orquestração
+import com.github.rafaabrito.projectgreenmind.domain.entities.CredentialsEntity //
 import com.github.rafaabrito.projectgreenmind.domain.utils.PasswordHasher 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first // Import necessário para obter valor do Flow
+import kotlinx.coroutines.flow.first
 
 class UserRepository(
     private val userDao: UserDao, 
-    private val credentialsDao: CredentialsDao, // DAO de Credenciais injetado
+    private val credentialsDao: CredentialsDao,
     private val passwordHasher: PasswordHasher
 ) {
 
@@ -56,19 +56,17 @@ class UserRepository(
     }
 
     suspend fun associateFirebaseUser(
-        name: String?, // name deve ser nullable se vier do Firebase ou for opcional
+        name: String?,
         email: String, 
-        authId: String // O UID do Firebase
+        authId: String
     ): UserEntity { 
         
         val existingCredential = credentialsDao.getCredentialByAuthId(authId)
 
         if (existingCredential != null) {
-            // Se a Credencial existe, o usuário local existe. Retorna o UserEntity ligado.
-            return userDao.getUser(existingCredential.userId).first()!! 
+            return userDao.getUser(existingCredential.userId).first()!!
         }
         
-        // Cria e salva o UserEntity 
         val newUser = UserEntity(
             name = name, 
             email = email, 

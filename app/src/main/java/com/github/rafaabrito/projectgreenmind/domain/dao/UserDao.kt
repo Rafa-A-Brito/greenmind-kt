@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.github.rafaabrito.projectgreenmind.domain.entities.UserEntity
+import kotlinx.coroutines.flow.Flow
+
 @Dao
 interface UserDao {
     // Inserção de dados do usuário 

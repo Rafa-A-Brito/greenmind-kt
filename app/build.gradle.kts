@@ -89,7 +89,7 @@ dependencies {
     // Testing Database
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
-    
+
     // RecylerView
     implementation(libs.androidx.recyclerview)
 
@@ -114,10 +114,23 @@ dependencies {
     // Lifecycle Compose
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Import the Firebase BoM
-    implementation(platform(libs.firebase.bom))
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
-    // When using the BoM, don't specify versions in Firebase dependencies
-    implementation(libs.firebase.analytics)
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-auth")
+
+    // Also add the dependencies for the Credential Manager libraries and specify their versions
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+
+    // OSM Android
+    implementation("org.osmdroid:osmdroid-android:6.1.14")
+
+    // Encrypted password (BCrypt)
+    implementation("org.mindrot:jbcrypt:0.4")
 
 }
