@@ -99,6 +99,7 @@ fun EcoTasksScreen(){
             .fillMaxSize()
             .padding(horizontal = 15.dp)
         ) {
+        TopBarComponent()
         Spacer(modifier = Modifier.height(16.dp))
         EcoTasksTopSection()
         Spacer(modifier = Modifier.height(16.dp))

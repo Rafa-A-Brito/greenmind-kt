@@ -157,11 +157,11 @@ fun ContentPresentation() {
 
     Text(
         text = "SEJA BEM-VINDO!",
-        fontSize = 30.sp,
+        fontSize = 25.sp,
         fontFamily = Inter,
         fontWeight = FontWeight.Bold,
         color = Color.White,
-        letterSpacing = 0.08.sp
+        letterSpacing = 0.08.sp,
     )
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -175,7 +175,7 @@ fun ContentPresentation() {
                     color = Color.White,
                     fontWeight = FontWeight.Medium,
                     fontFamily = Inter,
-                    fontSize = 22.sp
+                    fontSize = 18.sp
                 )
             ) {
                 append("ao aplicativo ")
@@ -184,7 +184,7 @@ fun ContentPresentation() {
                 SpanStyle(
                     color = Green, fontWeight = FontWeight.Bold,
                     fontFamily = Inter,
-                    fontSize = 22.sp,
+                    fontSize = 18.sp,
                     letterSpacing = 1.sp
                 )
             ) {
@@ -195,7 +195,7 @@ fun ContentPresentation() {
                     color = Color.White,
                     fontWeight = FontWeight.Medium,
                     fontFamily = Inter,
-                    fontSize = 22.sp
+                    fontSize = 18.sp
                 )
             ) {
             append("\uD83C\uDF33 ! Aproveite a experiência de aprendizado e contribuição social.")

@@ -25,7 +25,7 @@ class TasksRepository(
         return tasksDao.getTaskById(id).first()
     }
 
-    suspend fun getOrCreateProgress(userId: String, missionId: String): TasksProgressEntity {
+    suspend fun getOrCreateProgress(userId: Int, missionId: Int): TasksProgressEntity {
         // Tenta buscar o progresso existente
         val existingProgress = tasksProgressDao.getProgressByMission(userId, missionId).first()
 

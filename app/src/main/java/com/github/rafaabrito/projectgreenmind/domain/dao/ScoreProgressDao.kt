@@ -27,7 +27,7 @@ interface ScoreProgressDao {
     // --- Funções Adicionais Úteis ---
 
     @Query("SELECT * FROM scoreProgressEntity WHERE userId = :userId AND taskId = :taskId LIMIT 1")
-    fun getProgressByTask(userId: Int, taskId: String): Flow<ScoreProgressEntity?>
+    fun getProgressByTask(userId: Int, taskId: Int): Flow<ScoreProgressEntity?>
 
     @Query("SELECT SUM(scoreEarned) FROM scoreProgressEntity WHERE userId = :userId AND isCompleted = 1")
     fun getTotalScoreForUser(userId: Int): Flow<Int?>

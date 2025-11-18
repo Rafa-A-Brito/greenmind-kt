@@ -17,7 +17,7 @@ interface UserDao {
     @Query("SELECT * FROM user WHERE userId = :id")
     fun getUser(id: Int): Flow<UserEntity?> // Retorna Flow para observação
 
-    // Busca user pelo Uid 
+    // Busca user pelo Uid
     @Query("SELECT * FROM user WHERE firebaseUid = :uid")
     suspend fun getUserByFirebaseUid(uid: String): UserEntity?
 

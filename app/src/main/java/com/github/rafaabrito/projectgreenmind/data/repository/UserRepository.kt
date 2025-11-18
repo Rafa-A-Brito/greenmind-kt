@@ -1,12 +1,16 @@
+package com.github.rafaabrito.projectgreenmind.data.repository
+
+import androidx.room.Query
 import com.github.rafaabrito.projectgreenmind.domain.dao.UserDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.CredentialsDao
 import com.github.rafaabrito.projectgreenmind.domain.entities.UserEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.CredentialsEntity //
-import com.github.rafaabrito.projectgreenmind.domain.utils.PasswordHasher 
+import com.github.rafaabrito.projectgreenmind.domain.utils.PasswordHasher
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
-class UserRepository(
+public class UserRepository @Inject constructor(
     private val userDao: UserDao, 
     private val credentialsDao: CredentialsDao,
     private val passwordHasher: PasswordHasher
@@ -21,7 +25,6 @@ class UserRepository(
     fun getUserById(id: Int): Flow<UserEntity?> {
         return userDao.getUser(id)
     }
-
 
     suspend fun createNewUser(name: String, email: String, password: String): Boolean {
         if (userDao.getUserByEmail(email) != null) {
@@ -41,6 +44,14 @@ class UserRepository(
         return true
     }
 
+    suspend fun getUserByAuthId(authId: String): UserEntity? {
+        val credential = credentialsDao.getCredentialByAuthId(authId)
+        if (credential != null) {
+            return userDao.getUser(credential.userId).first() // Obtém o UserEntity
+        }
+        return userDao.getUserByFirebaseUid(authId)
+    }
+
     suspend fun login(email: String, password: String): UserEntity? {
         val user = userDao.getUserByEmail(email)
 
@@ -57,25 +68,25 @@ class UserRepository(
 
     suspend fun associateFirebaseUser(
         name: String?,
-        email: String, 
+        email: String,
         authId: String
-    ): UserEntity { 
-        
+    ): UserEntity {
+
         val existingCredential = credentialsDao.getCredentialByAuthId(authId)
 
         if (existingCredential != null) {
             return userDao.getUser(existingCredential.userId).first()!!
         }
-        
+
         val newUser = UserEntity(
-            name = name, 
-            email = email, 
-            hashPassword = null, 
-            firebaseUid = authId // Usa o authId como identificador
+            name = name,
+            email = email,
+            hashPassword = null,
+            firebaseUid = authId
         )
         userDao.saveUser(newUser)
 
-        val userWithId = userDao.getUserByFirebaseUid(authId)!! 
+        val userWithId = userDao.getUserByFirebaseUid(authId)!!
 
         val newCredential = CredentialsEntity(
             userId = userWithId.userId,

@@ -28,6 +28,7 @@ fun SocialMediaLogin(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     text: String,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
 

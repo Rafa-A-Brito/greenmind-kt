@@ -12,7 +12,12 @@
           "package_name": "com.github.rafaabrito.projectgreenmind"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "658883004327-5nbanf9gutau33frivg5gv1i6picm2r0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAPX9K7se7gPrXBporpucgmFJqZn1JYmkI"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "658883004327-5nbanf9gutau33frivg5gv1i6picm2r0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

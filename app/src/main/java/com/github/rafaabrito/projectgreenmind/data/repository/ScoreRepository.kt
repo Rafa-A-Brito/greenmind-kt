@@ -38,7 +38,6 @@ class ScoreRepository(
             )
             scoreProgressDao.insertProgress(progressEntry)
         } else if (!progressEntry.isCompleted) {
-            // Atualiza se o registro existe, mas a tarefa não foi marcada como concluída antes
             val updatedProgress = progressEntry.copy(
                 scoreEarned = scoreEarned,
                 isCompleted = true
@@ -48,27 +47,23 @@ class ScoreRepository(
             return
         }
 
-
         val newTotalScore = scoreProgressDao.getTotalScoreForUser(userId).first() ?: 0
 
         val currentScoreEntity = scoreDao.getScoreByUserId(userId).first()
 
-        val finalScoreEntity = if (currentScoreEntity == null) {
-            // Cria novo registro (primeira pontuação)
+        val finalScoreEntity = currentScoreEntity?.// Atualiza registro existente
+        copy(
+            totalScore = newTotalScore,
+            scoreLevel = calculateLevel(newTotalScore),
+            missionScore = scoreEarned // Pontuação da última missão
+        )
+            ?: // Cria novo registro (primeira pontuação)
             ScoreEntity(
                 userId = userId,
                 totalScore = newTotalScore,
                 scoreLevel = calculateLevel(newTotalScore), // Cálculo de nível
                 missionScore = scoreEarned
             )
-        } else {
-            // Atualiza registro existente
-            currentScoreEntity.copy(
-                totalScore = newTotalScore,
-                scoreLevel = calculateLevel(newTotalScore),
-                missionScore = scoreEarned // Pontuação da última missão
-            )
-        }
 
         scoreDao.updateScore(finalScoreEntity)
     }
