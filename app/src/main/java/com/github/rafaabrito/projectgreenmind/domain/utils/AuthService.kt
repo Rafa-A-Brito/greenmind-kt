@@ -1,21 +1,27 @@
+// AuthService.kt (Refatorado)
+
 package com.github.rafaabrito.projectgreenmind.domain.utils
 
 interface AuthService {
-    suspend fun signInWithEmail(email: String, password: String): AuthResult?
 
-    suspend fun signUpWithEmail(email: String, password: String, name: String?): AuthResult?
+    suspend fun signInWithEmailPassword(email: String, password: String): AuthResponse
+
+    suspend fun signUpWithEmailPassword(email: String, password: String): AuthResponse
 
     fun startSocialSignIn(provider: SocialProvider)
-    suspend fun authenticateWithGoogleToken(idToken: String): AuthResult?
-    suspend fun authenticateWithFacebookToken(accessToken: String): AuthResult?
+    suspend fun authenticateWithGoogleToken(idToken: String): AuthResponse
+    suspend fun authenticateWithFacebookToken(accessToken: String): AuthResponse
 
-    // Estrutura de retorno para simplificar
-    data class AuthResult(
-        val authId: String,
-        val email: String,
-        val name: String?,
-        val isNewUser: Boolean
-    )
+    sealed interface AuthResponse {
+        data class Success(
+            val authId: String,
+            val email: String,
+            val name: String?,
+            val isNewUser: Boolean
+        ) : AuthResponse
+
+        data class Error(val message: String) : AuthResponse
+    }
 
     enum class SocialProvider { GOOGLE, FACEBOOK }
 }

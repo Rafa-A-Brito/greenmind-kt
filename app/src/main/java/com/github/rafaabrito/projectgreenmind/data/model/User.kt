@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind.domain.model
+package com.github.rafaabrito.projectgreenmind.data.model
 
 import com.github.rafaabrito.projectgreenmind.domain.entities.UserEntity
 

@@ -149,7 +149,7 @@ class MainActivity : ComponentActivity() {
 
                         MainScreen(
                             mainAppNavController = mainAppNavController
-                        ) { paddingValues -> // <- Este é o 'content' slot
+                        ) { paddingValues ->
                             NavHost(
                                 navController = mainAppNavController,
                                 startDestination = NavigationBarItems.House.route,
@@ -193,7 +193,6 @@ class MainActivity : ComponentActivity() {
             lifecycleScope.launch {
                 try {
                     val authResult = authService.authenticateWithGoogleToken(googleIdTokenCredential.idToken)
-                    // ... (chama authService.authenticateWithGoogleToken)
                     if (authResult != null) {
                         Log.d(TAG, "Google Auth Success via AuthService")
                         callback?.invoke(authResult, null)
@@ -295,9 +294,9 @@ class MainActivity : ComponentActivity() {
             try {
                 val clearRequest = ClearCredentialStateRequest()
                 credentialManager.clearCredentialState(clearRequest)
-                Log.d(TAG, "User credentials cleared.")
+                Log.d(TAG, "Credenciais do usuário limpas.")
             } catch (e: ClearCredentialException) {
-                Log.e(TAG, "Couldn't clear user credentials: ${e.localizedMessage}")
+                Log.e(TAG, "Não foi possível limpar as credenciais: ${e.localizedMessage}")
             }
         }
     }
@@ -315,8 +314,6 @@ fun MainScreen(
         content(paddingValues)
     }
 }
-
-// Objects Serializable...
 @Serializable
 object Login
 @Serializable

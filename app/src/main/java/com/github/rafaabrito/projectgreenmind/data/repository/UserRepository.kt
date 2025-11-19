@@ -71,7 +71,6 @@ public class UserRepository @Inject constructor(
         email: String,
         authId: String
     ): UserEntity {
-
         val existingCredential = credentialsDao.getCredentialByAuthId(authId)
 
         if (existingCredential != null) {

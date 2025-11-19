@@ -3,8 +3,8 @@ package com.github.rafaabrito.projectgreenmind.ui.viewModel
 import com.github.rafaabrito.projectgreenmind.data.repository.UserRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.rafaabrito.projectgreenmind.domain.model.User
-import com.github.rafaabrito.projectgreenmind.domain.model.toDomainModel
+import com.github.rafaabrito.projectgreenmind.data.model.User
+import com.github.rafaabrito.projectgreenmind.data.model.toDomainModel
 import com.github.rafaabrito.projectgreenmind.domain.utils.AuthService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -22,65 +22,45 @@ class LoginViewModel @Inject constructor(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Initial)
     val loginState: StateFlow<LoginState> = _loginState
 
-    fun handleSocialAuthResult(result: AuthService.AuthResult?, error: String?) {
-        if (result != null) {
-            viewModelScope.launch {
-                _loginState.value = LoginViewModel.LoginState.Loading
+    // Função auxiliar para tratar o sucesso de autenticação
+    private fun handleAuthSuccess(result: AuthService.AuthResponse.Success) {
+        viewModelScope.launch {
+            _loginState.value = LoginState.Loading
+            try {
+                // Aqui o Smart Cast não é necessário, pois o tipo já é AuthResponse.Success
+                val userEntity = userRepository.associateFirebaseUser(
+                    name = result.name,
+                    email = result.email,
+                    authId = result.authId
+                )
 
-                try {
-                    val userEntity = userRepository.associateFirebaseUser(
-                        name = result.name,
-                        email = result.email,
-                        authId = result.authId
-                    )
-
-                    val userModel = User(
-                        userId = userEntity.userId,
-                        name = userEntity.name ?: "User",
-                        email = userEntity.email,
-                        firebaseUid = userEntity.firebaseUid,
-                    )
-
-                    _loginState.value = LoginViewModel.LoginState.Success(user = userModel)
-
-                } catch (e: Exception) {
-                    _loginState.value =
-                        LoginViewModel.LoginState.Error("Erro ao finalizar login local: ${e.message}")
-                }
+                _loginState.value = LoginState.Success(userEntity.toDomainModel())
+            } catch (e: Exception) {
+                _loginState.value = LoginState.Error("Erro ao sincronizar dados locais: ${e.message}")
             }
         }
     }
-    private fun handleAuthSuccess(result: AuthService.AuthResult) {
+
+    fun signInFirebase(email: String, password: String) {
+        _loginState.value = LoginState.Loading
         viewModelScope.launch {
             try {
-                val entity = userRepository.associateFirebaseUser(
-                    result.name, result.email, result.authId
-                )
-                _loginState.value = LoginState.Success(entity.toDomainModel())
+                val authResult = authService.signInWithEmailPassword(email, password)
+
+                // Smart Cast/Pattern Matching
+                when (authResult) {
+                    is AuthService.AuthResponse.Success -> {
+                        handleAuthSuccess(authResult)
+                    }
+                    is AuthService.AuthResponse.Error -> {
+                        _loginState.value = LoginState.Error(authResult.message)
+                    }
+                }
             } catch (e: Exception) {
-                _loginState.value = LoginState.Error("Falha ao salvar dados locais.")
+                _loginState.value = LoginState.Error("Erro ao conectar ao Firebase: ${e.message}")
             }
         }
     }
-
-    fun onSocialAuthSuccess(authResult: AuthService.AuthResult) {
-        viewModelScope.launch {
-            _loginState.value = LoginState.Loading // Opcional, mas bom para sincronia
-
-            val userEntity = userRepository.associateFirebaseUser(
-                name = authResult.name,
-                email = authResult.email,
-                authId = authResult.authId
-            )
-            _loginState.value = LoginState.Success(user = User(
-                userId = userEntity.userId,
-                name = userEntity.name ?: authResult.name ?: "Usuário", // Mapeia corretamente
-                email = userEntity.email,
-                firebaseUid = userEntity.firebaseUid
-            ))
-        }
-    }
-
 
     fun signInLocal(email: String, password: String) {
         _loginState.value = LoginState.Loading
@@ -93,19 +73,23 @@ class LoginViewModel @Inject constructor(
                     _loginState.value = LoginState.Error("Credenciais inválidas.")
                 }
             } catch (e: Exception) {
-                _loginState.value = LoginState.Error("Erro ao conectar.")
+                _loginState.value = LoginState.Error("Erro ao conectar. ${e.message}")
             }
         }
     }
 
-    fun onSocialAuthResult(result: AuthService.AuthResult?, error: String?) {
-        if (result != null) {
+    fun onSocialAuthResult(result: AuthService.AuthResponse?, error: String?) {
+        if (result is AuthService.AuthResponse.Success) {
             handleAuthSuccess(result)
+        } else if (result is AuthService.AuthResponse.Error) {
+            _loginState.value = LoginState.Error(result.message)
         } else if (error != null) {
             _loginState.value = LoginState.Error("Falha na autenticação social: $error")
+        } else {
+            _loginState.value =
+                LoginState.Error("Autenticação social cancelada ou falha desconhecida.")
         }
     }
-
     fun signInSocial(provider: AuthService.SocialProvider) {
         _loginState.value = LoginState.Loading
         authService.startSocialSignIn(provider)

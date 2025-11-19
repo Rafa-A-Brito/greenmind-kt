@@ -91,6 +91,9 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+
     // RecylerView
     implementation(libs.androidx.recyclerview)
 
@@ -130,6 +133,12 @@ dependencies {
     // OSM Android
     implementation(libs.osmdroid.android)
 
+    // GSON Google
+    implementation(libs.gson)
+
+    // GMS Play Services
+    implementation(libs.play.services.location)
+
     // Encrypted password (BCrypt)
     implementation(libs.jbcrypt)
     implementation(libs.facebook.login)
@@ -137,10 +146,21 @@ dependencies {
     // Hilt core
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
     // Hilt para Compose/ViewModel
     implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
+    // Config Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // Coroutines adapter
+    implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+
+    // GMS Compose e Services
+    implementation("com.google.maps.android:maps-compose:3.0.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    // Logging interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }
