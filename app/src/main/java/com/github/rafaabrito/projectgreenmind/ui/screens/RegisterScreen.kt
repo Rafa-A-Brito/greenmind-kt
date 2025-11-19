@@ -1,5 +1,10 @@
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,26 +48,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.github.rafaabrito.projectgreenmind.MainActivity
-import com.github.rafaabrito.projectgreenmind.domain.utils.AuthService
 import com.github.rafaabrito.projectgreenmind.ui.components.LoginTextField
 import com.github.rafaabrito.projectgreenmind.ui.components.SocialMediaLogin
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.RegisterViewModel
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.RegisterViewModel.RegisterState
 import com.github.rafaabrito.projectgreenmind.R
+
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel = hiltViewModel(),
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    onGoogleSignUp: () -> Unit,
-    onFacebookSignUp: () -> Unit
 ) {
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
-
     val registerState by viewModel.registerState.collectAsState()
-    val activity = context as? MainActivity
 
     // Estados locais para campos (Fonte da Verdade na UI)
     var name by remember { mutableStateOf("") }
@@ -73,34 +71,44 @@ fun RegisterScreen(
 
     val isLoading = registerState is RegisterState.Loading
 
+    fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    val scrollState = rememberScrollState() // Definido fora do Column
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = { result ->
+            // Chama o ViewModel para processar o resultado da Activity
+            if (result.resultCode == Activity.RESULT_OK) {
+                viewModel.handleGoogleSignInResult(result.data)
+            } else {
+                // Trata cancelamento
+                viewModel.handleGoogleSignInResult(null)
+            }
+        }
+    )
+
     LaunchedEffect(registerState) {
-        when (registerState) {
+        when (val state = registerState) {
             is RegisterState.Success -> {
                 onRegisterSuccess()
-                // showToast(context, "Registro efetuado com sucesso!")
+                showToast("Registro efetuado com sucesso!")
             }
+
             is RegisterState.Error -> {
-                val message = (registerState as RegisterState.Error).message
-                // showToast(context, message)
-                println("Register Error: $message")
+                showToast(state.message)
+                println("Register Error: ${state.message}")
             }
+            // 🟢 TRATAMENTO PARA LANÇAR O INTENTSENDER
+            is RegisterState.AwaitingSocialAuth -> {
+                launcher.launch(
+                    IntentSenderRequest.Builder(state.intentSender).build()
+                )
+            }
+
             else -> Unit
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        activity?.onSocialRegisterResult = { authResult, exception ->
-            if (authResult != null) {
-                viewModel.onSocialAuthResult(authResult, null)
-            } else if (exception != null) {
-                viewModel.onSocialAuthResult(null, exception.localizedMessage ?: "Erro desconhecido.")
-            }
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            activity?.onSocialRegisterResult = null
         }
     }
 
@@ -127,21 +135,26 @@ fun RegisterScreen(
                     onPasswordChange = { password = it },
                     confirmPassword = confirmPassword,
                     onConfirmPasswordChange = { confirmPassword = it },
-                    onRegisterClick = { viewModel.signUpLocal(name, email, password) }, // Ação de Registro
-                    isLoading = isLoading
+                    onRegisterClick = {
+                        if (password == confirmPassword) {
+                            viewModel.signUpLocal(name, email, password)
+                        } else {
+                            showToast("As senhas não coincidem.")
+                        }
+                    },                    isLoading = isLoading
                 )
                 Spacer(modifier = Modifier.height(30.dp))
 
                 DividerText()
                 Spacer(modifier = Modifier.height(20.dp))
                 SocialMediaRegisterSection(
-                    onGoogleClick = onGoogleSignUp,
-                    onFacebookClick = onFacebookSignUp,
+                    onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
                     enabled = !isLoading
                 )
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(0.8f))
             BackToLogin(onNavigateToLogin = onNavigateToLogin)
+            Spacer(modifier = Modifier.weight(0.3f))
         }
     }
 }
@@ -314,7 +327,6 @@ private fun DividerText(){
 @Composable
 private fun SocialMediaRegisterSection(
     onGoogleClick: () -> Unit,
-    onFacebookClick: () -> Unit,
     enabled: Boolean
 ){
     Row(
@@ -363,5 +375,5 @@ private fun BackToLogin(onNavigateToLogin: () -> Unit) {
 @Preview
 @Composable
 private fun RegisterPreview() {
-    RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {}, onGoogleSignUp = {}, onFacebookSignUp = {})
+    RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {})
 }

@@ -11,7 +11,6 @@ class BCryptPasswordHasher @Inject constructor() : PasswordHasher {
     private val saltLogRounds = 10
 
     override fun hashPassword(password: String): String {
-        // Gera um salt e faz o hash em uma única chamada.
         return BCrypt.hashpw(password, BCrypt.gensalt(saltLogRounds))
     }
 

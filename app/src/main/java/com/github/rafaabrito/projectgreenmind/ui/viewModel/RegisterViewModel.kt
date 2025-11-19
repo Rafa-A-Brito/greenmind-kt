@@ -1,9 +1,11 @@
 package com.github.rafaabrito.projectgreenmind.ui.viewModel
 
+import android.content.Intent
+import android.content.IntentSender
 import com.github.rafaabrito.projectgreenmind.data.repository.UserRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.rafaabrito.projectgreenmind.domain.utils.AuthService
+import com.github.rafaabrito.projectgreenmind.domain.utils.auth.AuthService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,11 +20,43 @@ class RegisterViewModel @Inject constructor(
     private val _registerState = MutableStateFlow<RegisterState>(RegisterState.Initial)
     val registerState: StateFlow<RegisterState> = _registerState
 
+    fun getGoogleSignInIntentSender() {
+        _registerState.value = RegisterState.Loading
+        viewModelScope.launch {
+            val intentSender = authService.startSocialSignIn(AuthService.SocialProvider.GOOGLE)
+            if (intentSender != null) {
+                _registerState.value = RegisterState.AwaitingSocialAuth(intentSender)
+            } else {
+                _registerState.value = RegisterState.Error("Falha ao iniciar Google Sign-In.")
+            }
+        }
+    }
+
+    fun handleGoogleSignInResult(intent: Intent?) {
+        if (intent == null) {
+            _registerState.value = RegisterState.Error("Autenticação social cancelada.")
+            return
+        }
+
+        _registerState.value = RegisterState.Loading // Re-inicia o estado de loading
+        viewModelScope.launch {
+            when (val authResult = authService.completeSocialSignIn(intent)) {
+                is AuthService.AuthResponse.Success -> {
+                    // Reutiliza sua lógica existente de `onSocialAuthResponse`
+                    onSocialAuthResponse(authResult, null)
+                }
+                is AuthService.AuthResponse.Error -> {
+                    _registerState.value = RegisterState.Error(authResult.message)
+                }
+                else -> {}
+            }
+        }
+    }
+
     fun signUpLocal(name: String, email: String, password: String) {
         _registerState.value = RegisterState.Loading
         viewModelScope.launch {
             try {
-                // Tenta criar o usuário no Room (usando BCrypt no Repositório)
                 val isSuccess = userRepository.createNewUser(name, email, password)
                 if (isSuccess) {
                     _registerState.value = RegisterState.Success
@@ -41,7 +75,7 @@ class RegisterViewModel @Inject constructor(
             try {
                 // A chamada retorna AuthResponse
                 when (
-                    val authResult = authService.signUpWithEmailPassword(email, password)
+                    val authResult = authService.signUpWithEmailPassword(email, password, name)
                 ) {
                     is AuthService.AuthResponse.Success -> {
                         userRepository.associateFirebaseUser(
@@ -62,11 +96,11 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
-    fun onSocialAuthResult(result: AuthService.AuthResponse?, error: String?) {
-        if (result is AuthService.AuthResponse.Success) {
+    fun onSocialAuthResponse(result: AuthService.AuthResponse.Success?, error: String?) {
+        if (result != null) {
             viewModelScope.launch {
                 try {
-                    // Smart Cast do Kotlin que permite o acesso aos campos
+                    // O associateFirebaseUser cuida do registro/associação local
                     userRepository.associateFirebaseUser(
                         name = result.name,
                         email = result.email,
@@ -74,16 +108,11 @@ class RegisterViewModel @Inject constructor(
                     )
                     _registerState.value = RegisterState.Success
                 } catch (e: Exception) {
-                    _registerState.value = RegisterState.Error("Erro ao finalizar registro local: ${e.message}")
+                    _registerState.value = RegisterState.Error("Erro ao finalizar registro local.")
                 }
             }
-        } else if (result is AuthService.AuthResponse.Error) {
-            _registerState.value = RegisterState.Error("Falha na autenticação social: ${result.message}")
         } else if (error != null) {
             _registerState.value = RegisterState.Error("Falha na autenticação social: $error")
-        } else {
-            // Cancelamento caso haja erro ou o mesmo seja null
-            _registerState.value = RegisterState.Error("Autenticação social cancelada ou falha desconhecida.")
         }
     }
 
@@ -92,5 +121,7 @@ class RegisterViewModel @Inject constructor(
         data object Loading : RegisterState()
         data object Success : RegisterState()
         data class Error(val message: String) : RegisterState()
+        // 🟢 NOVO ESTADO: Para notificar a UI que um IntentSender deve ser lançado
+        data class AwaitingSocialAuth(val intentSender: IntentSender) : RegisterState()
     }
 }

@@ -1,6 +1,5 @@
-package com.github.rafaabrito.projectgreenmind.domain.utils
+package com.github.rafaabrito.projectgreenmind.domain.utils.auth
 
-import com.github.rafaabrito.projectgreenmind.domain.utils.AuthService
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

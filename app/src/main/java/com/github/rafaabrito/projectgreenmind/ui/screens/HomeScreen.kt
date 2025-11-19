@@ -79,17 +79,21 @@ import com.github.rafaabrito.projectgreenmind.ui.components.TopBarComponent
 import com.github.rafaabrito.projectgreenmind.ui.theme.Black
 import com.github.rafaabrito.projectgreenmind.ui.theme.BlackShade
 import com.github.rafaabrito.projectgreenmind.ui.theme.BrightCyanGreen
+import com.github.rafaabrito.projectgreenmind.ui.theme.CyanLime
 import com.github.rafaabrito.projectgreenmind.ui.theme.DarkSpringGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.ForestGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
 import com.github.rafaabrito.projectgreenmind.ui.theme.Inter
+import com.github.rafaabrito.projectgreenmind.ui.theme.LightGreenCyan
 import com.github.rafaabrito.projectgreenmind.ui.theme.LightShadeGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.MediumBlack
 import com.github.rafaabrito.projectgreenmind.ui.theme.MediumGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.Micro5
 import com.github.rafaabrito.projectgreenmind.ui.theme.MinimumGray
+import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 import com.github.rafaabrito.projectgreenmind.ui.theme.RobotoMono
 import com.github.rafaabrito.projectgreenmind.ui.theme.SeafomGreen
+import com.github.rafaabrito.projectgreenmind.ui.theme.StrongGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -121,8 +125,6 @@ fun HomeScreen() {
             .background(White)
             .verticalScroll(scrollState)
     ){
-        TopBarComponent()
-        Spacer(modifier = Modifier.height(16.dp))
         Spacer(modifier = Modifier.height(16.dp))
 
         TopSection()
@@ -149,7 +151,7 @@ fun TopSection() {
             Column {
                 Text(
                     text = "Bem vindo(a)",
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     color = Color.Black
@@ -175,12 +177,12 @@ fun TopSection() {
             Image(
                 painter = painterResource(R.drawable.medal),
                 contentDescription = "Nível",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = "NÍVEL 15",
-                fontSize = 14.sp,
+                fontSize = 18.sp,
                 fontFamily = Micro5,
                 fontWeight = FontWeight.Normal,
                 color = White
@@ -189,11 +191,11 @@ fun TopSection() {
             Image(
                 painter = painterResource(R.drawable.xp_total),
                 contentDescription = "Nível",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(30.dp)
             )
             Text(
                 text = "4800 XP",
-                fontSize = 14.sp,
+                fontSize = 18.sp,
                 fontFamily = Micro5,
                 fontWeight = FontWeight.Normal,
                 color = White
@@ -205,7 +207,9 @@ fun TopSection() {
 
     // Cards de Conquistas (Pontos, Ofensiva, Desafios)
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .background(StrongGreen)
+            .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         AchievementCard(
@@ -213,7 +217,6 @@ fun TopSection() {
             value = "38420 XP",
             icon = Icons.Default.EmojiEvents,
             iconTint = White,
-            backgroundColor = Color(0xFF0BA858),
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
@@ -222,7 +225,6 @@ fun TopSection() {
             value = "3 semanas",
             icon = Icons.Default.LocalFireDepartment, // Ícone de Chama
             iconTint = Color.Red,
-            backgroundColor = Color(0xFF0BA858),
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
@@ -231,7 +233,6 @@ fun TopSection() {
             value = "85%",
             icon = Icons.Default.Stars,
             iconTint = GreenCyanLight,
-            backgroundColor = Color(0xFF0BA858),
             modifier = Modifier.weight(1f)
         )
     }
@@ -243,50 +244,50 @@ fun AchievementCard(
     value: String,
     icon: ImageVector,
     iconTint: Color,
-    backgroundColor: Color,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
-            .padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Ícone
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
+        Column(
+            modifier = modifier
+                .clip(RoundedCornerShape(12.dp))
                 .background(White)
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
+                .padding(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = iconTint,
-                modifier = Modifier.fillMaxSize()
+            // Ícone
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(LightGreenCyan)
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = iconTint,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                fontFamily = Roboto,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = value,
+                fontSize = 16.sp,
+                fontFamily = Roboto,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Blue,
+                textAlign = TextAlign.Center
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        // Valor
-        Text(
-            text = value,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = White,
-            textAlign = TextAlign.Center
-        )
-        // Título
-        Text(
-            text = title,
-            fontSize = 12.sp,
-            color = GreenCyanLight,
-            textAlign = TextAlign.Center
-        )
     }
-}
 
 @Composable
 fun MiddleSection() {
@@ -295,7 +296,7 @@ fun MiddleSection() {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF006400)) // Um verde escuro similar ao da imagem
+            .background(CyanLime)
             .padding(16.dp)
     ) {
         Row(
@@ -305,7 +306,8 @@ fun MiddleSection() {
             Text(
                 text = "Dicas semanais",
                 color = Black,
-                fontWeight = FontWeight.Bold,
+                fontFamily = Inter,
+                fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .background(BrightCyanGreen)
@@ -314,6 +316,8 @@ fun MiddleSection() {
             Text(
                 text = "Sustentabilidade",
                 color = White,
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .background(DarkSpringGreen)
@@ -324,41 +328,44 @@ fun MiddleSection() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(15.dp)
-                .background(BlackShade)
+                .padding(2.dp)
+                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
         ) {
             Text(
                 text = "Antes de comprar, pense: eu realmente preciso disso? Praticar o consumo consciente ajuda a economizar recursos naturais, reduzir o desperdício e até poupar dinheiro. 🌿",
                 color = White,
+                fontFamily = Inter,
+                fontWeight = FontWeight.Medium,
                 fontSize = 16.sp
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .width(250.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(Color(0x20FFFFFF)) // Um box mais escuro para o botão de conclusão
-                .padding(8.dp)
+                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                .padding(3.dp)
                 .clickable { /* Ação de marcar conclusão */ },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
+                modifier = Modifier.
+                    padding(horizontal = 6.dp),
                 imageVector = Icons.Default.CheckCircleOutline,
                 contentDescription = "Marcar conclusão",
                 tint = GreenCyanLight
             )
-            Spacer(modifier = Modifier.width(8.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(15.dp)
-                    .background(BlackShade)
+                    .padding(10.dp)
             ) {
                 Text(
                     text = "Marcar conclusão (+ 25XP)",
                     color = White,
-                    fontWeight = FontWeight.SemiBold
+                    fontFamily = Roboto,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
@@ -389,7 +396,8 @@ fun MiddleSection() {
     Spacer(modifier = Modifier.height(8.dp))
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .background(StrongGreen),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         QuickActionCard(
@@ -418,39 +426,40 @@ fun QuickActionCard(
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF0BA858))
-            .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Ícone com fundo arredondado
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(White)
-                .padding(10.dp),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(BlackShade)
+                .padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = text,
-                tint = Color(0xFF0BA858),
-                modifier = Modifier.fillMaxSize()
+            // Ícone com fundo arredondado
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(White)
+                    .padding(5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = text,
+                    tint = Color(0xFF0BA858),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = text,
+                fontSize = 14.sp,
+                lineHeight = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = White,
+                textAlign = TextAlign.Center
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = text,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = White,
-            textAlign = TextAlign.Center
-        )
     }
-}
 
 @Composable
 fun BottomSection() {

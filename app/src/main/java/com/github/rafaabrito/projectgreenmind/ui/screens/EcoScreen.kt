@@ -113,7 +113,6 @@ fun EcoScreen(
             .padding(15.dp)
             .verticalScroll(scrollState) // Habilita a rolagem vertical
     ) {
-        TopBarComponent()
         Spacer(modifier = Modifier.height(16.dp))
 
         // Seção Superior (Localização e Mapa)
@@ -420,7 +419,7 @@ fun FilterSectionDesign(
                             coroutineScope.launch {
                                 // Lógica de rolagem:
                                 val itemWidthWithSpacing = 110.dp
-                                val containerWidthDp = 360.dp 
+                                val containerWidthDp = 360.dp
 
                                 // Calcula o deslocamento para o item selecionado
                                 val targetScrollX = (index * itemWidthWithSpacing.value).toInt()
@@ -462,7 +461,11 @@ fun FilterSectionDesign(
                 color = Color.DarkGray,
                 fontSize = 18.sp,
                 modifier = Modifier
-                    .clickable { /* Lógica de scroll */ }
+                    .clickable {
+                        coroutineScope.launch {
+                            scrollState.animateScrollTo(maxOf(0, scrollState.value - 150))
+                        }
+                    }
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -494,7 +497,11 @@ fun FilterSectionDesign(
                 color = Color.DarkGray,
                 fontSize = 18.sp,
                 modifier = Modifier
-                    .clickable { /* Lógica de scroll */ }
+                    .clickable {
+                        coroutineScope.launch {
+                            scrollState.animateScrollTo(minOf(scrollState.maxValue, scrollState.value + 150))
+                        }
+                    }
             )
         }
     }

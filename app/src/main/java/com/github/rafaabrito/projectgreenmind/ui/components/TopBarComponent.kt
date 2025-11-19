@@ -34,7 +34,9 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.RobotoMono
 import com.github.rafaabrito.projectgreenmind.ui.theme.SeafomGreen
 
 @Composable
-fun TopBarComponent() {
+fun TopBarComponent(
+    onMenuClick: () -> Unit
+) {
     Spacer(modifier = Modifier.height(15.dp))
     Box(
         modifier = Modifier
@@ -88,7 +90,7 @@ fun TopBarComponent() {
                     .background(SeafomGreen, shape = RoundedCornerShape(5.dp))
                     .size(35.dp)
             ) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = onMenuClick) {
                     Image(
                         modifier = Modifier.size(25.dp),
                         colorFilter = ColorFilter.tint(Color.Black),

@@ -2,7 +2,11 @@
 
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
+import android.app.Activity
 import android.content.res.Configuration
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,22 +43,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.rafaabrito.projectgreenmind.MainActivity
 import com.github.rafaabrito.projectgreenmind.ui.components.LoginTextField
 import com.github.rafaabrito.projectgreenmind.R
-import com.github.rafaabrito.projectgreenmind.domain.utils.AuthService
 import com.github.rafaabrito.projectgreenmind.ui.components.SocialMediaLogin
 import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 import com.github.rafaabrito.projectgreenmind.ui.theme.ScreenOrientation
@@ -63,17 +59,22 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
 
 @Composable
-fun LoginScreen(
-    viewModel: LoginViewModel = hiltViewModel(),
-    onLoginSuccess: (userId: Int) -> Unit, // Alterado para receber userId
-    onNavigateToRegister: () -> Unit,
-    onGoogleSignIn: () -> Unit,
-    onFacebookSignIn: () -> Unit
-) {
-    val context = LocalContext.current
-    val activity = context as? MainActivity
-
+    fun LoginScreen(
+        viewModel: LoginViewModel = hiltViewModel(),
+        onLoginSuccess: (userId: Int) -> Unit,
+        onNavigateToRegister: () -> Unit,
+    ) {
     val loginState by viewModel.loginState.collectAsState()
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                viewModel.handleGoogleSignInResult(result.data)
+            } else {
+                viewModel.handleGoogleSignInResult(null)
+            }
+        }
+    )
 
     // Estados locais para campos
     var email by remember { mutableStateOf("") }
@@ -82,35 +83,21 @@ fun LoginScreen(
     // Indica se o formulário está carregando
     val isLoading = loginState is LoginViewModel.LoginState.Loading
 
-    // 2. LÓGICA DE NAVEGAÇÃO/FEEDBACK (Efeito Colateral)
     LaunchedEffect(loginState) {
-        when (loginState) {
+        when (val state = loginState) {
             is LoginViewModel.LoginState.Success -> {
-                val userId = (loginState as LoginViewModel.LoginState.Success).user.userId
-                // Redireciona para a tela principal
-                onLoginSuccess(userId)
+                onLoginSuccess(state.user.userId) // Passa o ID do usuário
             }
             is LoginViewModel.LoginState.Error -> {
-                val message = (loginState as LoginViewModel.LoginState.Error).message
-                // Implemente showToast(context, message) aqui ou em um Scaffold
-                println("Login Error: $message")
+                // Mostrar Toast
+            }
+            // 🟢 NOVO TRATAMENTO PARA LANÇAR O INTENTSENDER
+            is LoginViewModel.LoginState.AwaitingSocialAuth -> {
+                launcher.launch(
+                    IntentSenderRequest.Builder(state.intentSender).build()
+                )
             }
             else -> Unit
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        activity?.onSocialLoginResult = { authResult, exception ->
-            if (authResult != null) {
-                // Chama a função no ViewModel em caso de sucesso
-                viewModel.handleSocialAuthResult(authResult, null)
-            } else if (exception != null) {
-                // Chama a função no ViewModel em caso de erro
-                viewModel.handleSocialAuthResult(null, exception.localizedMessage ?: "Erro desconhecido.")
-            } else {
-                // Caso em que o login foi cancelado ou falhou silenciosamente
-                viewModel.handleSocialAuthResult(null, "Autenticação social cancelada ou falha desconhecida.")
-            }
         }
     }
 
@@ -124,8 +111,7 @@ fun LoginScreen(
                 onPasswordChange = { password = it },
                 isLoading = isLoading,
                 onLoginClick = { viewModel.signInLocal(email, password) },
-                onGoogleClick = { viewModel.signInSocial(AuthService.SocialProvider.GOOGLE) },
-                onFacebookClick = { viewModel.signInSocial(AuthService.SocialProvider.FACEBOOK) },
+                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
                 onNavigateToRegister = onNavigateToRegister
             )
         } else {
@@ -137,8 +123,7 @@ fun LoginScreen(
                 onPasswordChange = { password = it },
                 isLoading = isLoading,
                 onLoginClick = { viewModel.signInLocal(email, password) },
-                onGoogleClick = { viewModel.signInSocial(AuthService.SocialProvider.GOOGLE) },
-                onFacebookClick = { viewModel.signInSocial(AuthService.SocialProvider.FACEBOOK) },
+                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
                 onNavigateToRegister = onNavigateToRegister
             )
         }
@@ -154,7 +139,6 @@ private fun PortraitLoginScreen(
     isLoading: Boolean,
     onLoginClick: () -> Unit,
     onGoogleClick: () -> Unit,
-    onFacebookClick: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     Column(
@@ -186,7 +170,6 @@ private fun PortraitLoginScreen(
 
             SocialMediaSection(
                 onGoogleClick = onGoogleClick,
-                onFacebookClick = onFacebookClick,
                 enabled = !isLoading
             )
         }
@@ -345,28 +328,16 @@ private fun DividerText(){
 @Composable
 private fun SocialMediaSection(
     onGoogleClick: () -> Unit,
-    onFacebookClick: () -> Unit,
     enabled: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.Center
     ) {
-        SocialMediaLogin(
-            icon = R.drawable.google,
-            text = "Google",
+        SocialMediaLogin(icon = R.drawable.google, text = "Google",
             modifier = Modifier.weight(1f),
             enabled = enabled,
-            onClick = onGoogleClick // Chamada do ViewModel
-        )
-        Spacer(modifier = Modifier.width(MaterialTheme.dimens.small3))
-        SocialMediaLogin(
-            icon = R.drawable.facebook,
-            text = "Facebook",
-            modifier = Modifier.weight(1f),
-            enabled = enabled,
-            onClick = onFacebookClick // Chamada do ViewModel
-        )
+            onClick = onGoogleClick)
     }
 }
 
@@ -407,5 +378,4 @@ private fun ColumnScope.CreateAccount(
 @Preview
 @Composable
 private fun LoginPreview() {
-    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = { }, onGoogleSignIn = { }, onFacebookSignIn = { })
-}
+    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = { })}

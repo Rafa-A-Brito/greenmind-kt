@@ -1,4 +1,4 @@
-package com.github.rafaabrito.projectgreenmind.domain.utils
+package com.github.rafaabrito.projectgreenmind.domain.utils.auth
 
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module

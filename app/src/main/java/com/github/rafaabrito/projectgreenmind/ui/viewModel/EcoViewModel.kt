@@ -96,7 +96,7 @@ class EcoViewModel @Inject constructor(
                         localName = "Ecoponto Centro", street = "Rua da Consolação",
                         numero = "1000", neighborhood = "Consolação",
                         city = "São Paulo", cep = "01301-000",
-                        distance = "2.1 km", // NOVO CAMPO
+                        distance = "2.1 km",
                         recyclableTypes = listOf("Papel", "Metal")
                     ),
                     LocalEcoEntity(
@@ -104,7 +104,7 @@ class EcoViewModel @Inject constructor(
                         localName = "Ecoponto Pinheiros", street = "Av. Rebouças",
                         numero = "2500", neighborhood = "Pinheiros",
                         city = "São Paulo", cep = "05401-000",
-                        distance = "0.8 km", // NOVO CAMPO
+                        distance = "0.8 km",
                         recyclableTypes = listOf("Plástico", "Vidro", "Óleo")
                     ),
                     LocalEcoEntity(

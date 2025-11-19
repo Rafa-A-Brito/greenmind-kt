@@ -37,29 +37,28 @@ object DatabaseModule {
 
     // Provedores de DAO para injeção
     @Provides
-    fun provideUserDao(database: GreenMindDatabase): UserDao = database.userDao()
+    fun provideUserDao(database: GreenMindDatabase): UserDao { return database.userDao()}
 
     @Provides
-    fun provideCredentialsDao(database: GreenMindDatabase): CredentialsDao = database.credentialsDao()
+    fun provideCredentialsDao(database: GreenMindDatabase): CredentialsDao { return database.credentialsDao() }
 
     @Provides
-    fun provideFilesDao(database: GreenMindDatabase): FilesDao = database.filesDao()
+    fun provideFilesDao(database: GreenMindDatabase): FilesDao { return database.filesDao()}
 
     @Provides
-    fun provideLocalEcoDao(database: GreenMindDatabase): LocalEcoDao = database.localEcoDao()
+    fun provideLocalEcoDao(database: GreenMindDatabase): LocalEcoDao { return database.localEcoDao()}
 
     @Provides
-    fun provideScoreDao(database: GreenMindDatabase): ScoreDao = database.scoreDao()
+    fun provideScoreDao(database: GreenMindDatabase): ScoreDao {return database.scoreDao()}
 
     @Provides
-    fun provideScoreProgressDao(database: GreenMindDatabase): ScoreProgressDao = database.scoreProgressDao()
+    fun provideScoreProgressDao(database: GreenMindDatabase): ScoreProgressDao {return database.scoreProgressDao()}
 
     @Provides
-    fun provideSustentabilityBannerDao(database: GreenMindDatabase): SustentabilityBannerDao = database.sustentabilityBannerDao()
+    fun provideSustentabilityBannerDao(database: GreenMindDatabase): SustentabilityBannerDao{return database.sustentabilityBannerDao()}
+    @Provides
+    fun provideTasksDao(database: GreenMindDatabase): TasksDao {return database.tasksDao()}
 
     @Provides
-    fun provideTasksDao(database: GreenMindDatabase): TasksDao = database.tasksDao()
-
-    @Provides
-    fun provideTasksProgressDao(database: GreenMindDatabase): TasksProgressDao = database.tasksProgressDao()
+    fun provideTasksProgressDao(database: GreenMindDatabase): TasksProgressDao {return database.tasksProgressDao()}
 }

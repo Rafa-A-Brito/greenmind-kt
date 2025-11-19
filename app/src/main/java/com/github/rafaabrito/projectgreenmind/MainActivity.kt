@@ -34,9 +34,7 @@ import androidx.navigation.NavHostController
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import com.facebook.AccessToken
@@ -47,34 +45,27 @@ import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import com.github.rafaabrito.projectgreenmind.domain.utils.AuthService
+import com.github.rafaabrito.projectgreenmind.domain.utils.auth.AuthService
+import com.github.rafaabrito.projectgreenmind.ui.components.DrawerContainer
+import com.google.firebase.Firebase
+
 @AndroidEntryPoint
 @Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
-
+    private val mainViewModel: MainViewModel by viewModels()
+    private val credentialManager by lazy { CredentialManager.create(this) }
     private val viewModel by viewModels<MainViewModel>()
 
     private val TAG = "AuthActivity"
 
     // Membros da classe
     @Inject
-    lateinit var auth: FirebaseAuth
-
+    lateinit var firebaseAuth: FirebaseAuth
     @Inject
     lateinit var authService: AuthService
 
-    private lateinit var callbackManager: CallbackManager
-    private lateinit var credentialManager: CredentialManager
-
-    var onSocialLoginResult: ((AuthService.AuthResult?, Exception?) -> Unit)? = null
-    var onSocialRegisterResult: ((AuthService.AuthResult?, Exception?) -> Unit)? = null
-
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         val splashScreen = installSplashScreen()
-
-        // Inicializa o Firebase Auth e Credential Manager
-        credentialManager = CredentialManager.create(this)
-        callbackManager = CallbackManager.Factory.create()
 
         super.onCreate(savedInstanceState) // Posição mais segura
 
@@ -114,9 +105,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToRegister = {
                                 rootNavController.navigate(Register)
-                            },
-                            onGoogleSignIn = ::signInWithGoogle,
-                            onFacebookSignIn = ::signInWithFacebook
+                            }
                         )
                     }
 
@@ -131,10 +120,7 @@ class MainActivity : ComponentActivity() {
                                 rootNavController.navigate(Login) {
                                     popUpTo<Register> { inclusive = true }
                                 }
-                            },
-                            onGoogleSignUp = ::signInWithGoogle,
-                            onFacebookSignUp = ::signInWithFacebook
-                        )
+                            })
                     }
 
                     composable<MainAppGraph> {
@@ -177,118 +163,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        callbackManager.onActivityResult(requestCode, resultCode, data)
-    }
-
-    private fun handleSocialCredential(credential: Credential) {
-        val callback = onSocialRegisterResult ?: onSocialLoginResult
-
-        if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-
-            // Lógica de autenticação transferida para o AuthService
-            lifecycleScope.launch {
-                try {
-                    val authResult = authService.authenticateWithGoogleToken(googleIdTokenCredential.idToken)
-                    if (authResult != null) {
-                        Log.d(TAG, "Google Auth Success via AuthService")
-                        callback?.invoke(authResult, null)
-
-                    } else {
-                        Log.w(TAG, "Google Auth Failed via AuthService (Token Válido, Firebase Falhou)")
-                        callback?.invoke(null, Exception("Falha na autenticação Firebase."))
-                        Toast.makeText(this@MainActivity, "Autenticação falhou.", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "AuthService error: ${e.localizedMessage}")
-                    callback?.invoke(null, e)
-                    Toast.makeText(this@MainActivity, "Erro de servidor.", Toast.LENGTH_SHORT).show()
-                }
-            }
-        } else {
-            Log.w(TAG, "A credencial não é do tipo Google ID!")
-            callback?.invoke(null, Exception("Credencial inválida."))
-        }
-    }
-
-    // Método para iniciar o login, chamado pelo Composable
-    fun signInWithFacebook() {
-        val loginManager = LoginManager.getInstance()
-
-        loginManager.registerCallback(
-            callbackManager,
-            object : FacebookCallback<LoginResult> {
-                override fun onSuccess(result: LoginResult) {
-                    Log.d(TAG, "facebook:onSuccess:${result.accessToken}")
-                    // 🔑 Novo método para lidar com o token do Facebook
-                    handleFacebookAuthResult(result.accessToken)
-                }
-                override fun onCancel() {
-                    Log.d(TAG, "facebook:onCancel")
-                }
-                override fun onError(error: FacebookException) {
-                    Log.w(TAG, "facebook:onError", error)
-                }
-            }
-        )
-
-        loginManager.logInWithReadPermissions(this, listOf("email", "public_profile"))
-    }
-
-    private fun handleFacebookAuthResult(token: AccessToken) {
-        val callback = onSocialRegisterResult ?: onSocialLoginResult
-
-        lifecycleScope.launch {
-            try {
-                val authResult = authService.authenticateWithFacebookToken(token.token)
-                if (authResult != null) {
-                    Log.d(TAG, "Facebook Auth Success via AuthService")
-                    callback?.invoke(authResult, null)
-                } else {
-                    Log.w(TAG, "Facebook Auth Failed via AuthService")
-                    callback?.invoke(null, Exception("Falha na autenticação Firebase (Facebook)."))
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "AuthService error (Facebook): ${e.localizedMessage}")
-                callback?.invoke(null, e)
-                Toast.makeText(this@MainActivity, "Erro de servidor.", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    // Função pública para ser chamada pelos Composable/ViewModel
-    fun signInWithGoogle() {
-        val googleIdOption = GetGoogleIdOption.Builder()
-            // Uso correto: getString() é um método da Activity/Context
-            .setServerClientId(getString(R.string.default_web_client_id))
-            .setFilterByAuthorizedAccounts(true)
-            .build()
-
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build()
-
-        lifecycleScope.launch {
-            try {
-                val result = credentialManager.getCredential(
-                    request = request,
-                    context = this@MainActivity
-                )
-                handleSocialCredential(result.credential)
-            } catch (e: Exception) {
-                // Adicionado Toast para debug. Remova quando estiver estável.
-                Toast.makeText(this@MainActivity, "Erro Google: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                Log.e(TAG, "Google Sign-In falhou: ${e.localizedMessage}")
-            }
-        }
-    }
-
     // Lógica de Sign Out
     fun signOut() {
-        auth.signOut()
+        // Use a instância injetada do Firebase Auth
+        firebaseAuth.signOut()
 
         lifecycleScope.launch {
             try {
@@ -310,8 +188,14 @@ fun MainScreen(
         bottomBar = {
             BottomBarComponent(navController = mainAppNavController)
         },
-    ) { paddingValues ->
-        content(paddingValues)
+    ) { paddingValues -> // paddingValues é o da BottomBar
+        DrawerContainer(
+            showTopBar = true,
+            title = "App Greenmind",
+            outerPadding = paddingValues
+        ) { combinedPadding ->
+            content(combinedPadding)
+        }
     }
 }
 @Serializable
