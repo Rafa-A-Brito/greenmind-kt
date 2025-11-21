@@ -3,8 +3,7 @@ package com.github.rafaabrito.projectgreenmind.domain.utils.auth
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
-import com.google.android.gms.auth.api.identity.SignInClient
+import android.credentials.GetCredentialException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -15,37 +14,31 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import com.google.firebase.auth.*
 import com.github.rafaabrito.projectgreenmind.R
 import kotlin.coroutines.cancellation.CancellationException
 import dagger.hilt.android.qualifiers.ApplicationContext
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 
 class FirebaseAuthServiceImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val oneTapClient: SignInClient,
+    private val credentialManager: CredentialManager,
     @ApplicationContext private val context: Context
 ) : AuthService {
-    private fun mapFirebaseUserToAuthResponse(user: FirebaseUser, isNewUser: Boolean): AuthService.AuthResponse.Success {
+    private fun mapFirebaseUserToAuthResponse(user: FirebaseUser): AuthService.AuthResponse.Success {
         return AuthService.AuthResponse.Success(
             authId = user.uid,
             email = user.email ?: "",
             name = user.displayName,
-            isNewUser = isNewUser
+            profilePictureUrl = user.photoUrl?.toString()
         )
     }
-
-    private fun buildSignInRequest(): BeginSignInRequest {
-        return BeginSignInRequest.Builder()
-            .setGoogleIdTokenRequestOptions(
-                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true)
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(context.getString(R.string.default_web_client_id))
-                    .build()
-            )
-            .setAutoSelectEnabled(true)
-            .build()
-    }
-
     // Função auxiliar para mapear exceções comuns
     private fun mapFirebaseExceptionToError(e: Exception): AuthService.AuthResponse.Error {
         val errorMessage = when (e) {
@@ -58,14 +51,13 @@ class FirebaseAuthServiceImpl @Inject constructor(
         return AuthService.AuthResponse.Error(errorMessage)
     }
 
-
     override suspend fun signInWithEmailPassword(email: String, password: String): AuthService.AuthResponse {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val user = result.user
 
             if (user != null) {
-                mapFirebaseUserToAuthResponse(user, isNewUser = false)
+                mapFirebaseUserToAuthResponse(user)
             } else {
                 AuthService.AuthResponse.Error("Falha ao obter usuário após o login.")
             }
@@ -87,7 +79,7 @@ class FirebaseAuthServiceImpl @Inject constructor(
                         .build()
                     user.updateProfile(profileUpdates).await()
                 }
-                mapFirebaseUserToAuthResponse(user, isNewUser = true)
+                mapFirebaseUserToAuthResponse(user)
             } else {
                 AuthService.AuthResponse.Error("Falha ao obter usuário após o registro.")
             }
@@ -97,33 +89,33 @@ class FirebaseAuthServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun startSocialSignIn(provider: AuthService.SocialProvider): IntentSender? {
-        if (provider != AuthService.SocialProvider.GOOGLE) return null
-
+    override suspend fun getGoogleIdCredentialRequest(): GetCredentialRequest? {
         return try {
-            val result = oneTapClient.beginSignIn(
-                buildSignInRequest()
-            ).await()
-            result.pendingIntent.intentSender
-        } catch(e: Exception) {
+            val serverClientId = context.getString(R.string.default_web_client_id)
+
+            // Instanciar a solicitação de login do Google (GetGoogleIdOption)
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setServerClientId(serverClientId)
+                .setFilterByAuthorizedAccounts(true)
+                .build()
+
+            // Criar a solicitação do Gerenciador de credenciais (GetCredentialRequest)
+            return GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
+        } catch (e: Exception) {
             e.printStackTrace()
-            if(e is CancellationException) throw e
             null
         }
     }
-
-    override suspend fun completeSocialSignIn(intent: Intent): AuthService.AuthResponse {
+    override suspend fun signInWithGoogleIdToken(idToken: String): AuthService.AuthResponse {
         return try {
-            val credential = oneTapClient.getSignInCredentialFromIntent(intent)
-            val googleIdToken = credential.googleIdToken
-                ?: return AuthService.AuthResponse.Error("Token de ID do Google não encontrado.")
-
-            val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
+            val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
             val result = firebaseAuth.signInWithCredential(firebaseCredential).await()
             val user = result.user
 
             if (user != null) {
-                mapFirebaseUserToAuthResponse(user, isNewUser = result.additionalUserInfo?.isNewUser ?: false)
+                mapFirebaseUserToAuthResponse(user)
             } else {
                 AuthService.AuthResponse.Error("Falha ao obter usuário após autenticação social.")
             }
@@ -132,5 +124,4 @@ class FirebaseAuthServiceImpl @Inject constructor(
             mapFirebaseExceptionToError(e)
         }
     }
-
 }

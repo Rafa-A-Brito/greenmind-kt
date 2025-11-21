@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,7 +49,7 @@ fun CustomDrawer(
         ) {
             IconButton(onClick = onCloseClick) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
                     contentDescription = "Back Arrow Icon",
                     tint = Color.White
                 )

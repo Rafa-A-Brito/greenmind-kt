@@ -2,6 +2,7 @@ package com.github.rafaabrito.projectgreenmind.ui.components
 
 import android.net.http.SslCertificate.restoreState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -38,7 +39,6 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.MinimumGray
 fun BottomBarComponent(navController: NavController) {
     val navigationBarItems = remember { NavigationBarItems.entries.toTypedArray() }
 
-    // Observa o estado da pilha de retorno para saber a tela atual
     val currentDestination by navController.currentBackStackEntryAsState()
     val currentRoute = currentDestination?.destination?.route
 
@@ -46,7 +46,8 @@ fun BottomBarComponent(navController: NavController) {
         navigationBarItems.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
     }
     AnimatedNavigationBar(
-        modifier = Modifier.height(64.dp),
+        modifier = Modifier.height(64.dp)
+            .background(Color.Transparent),
         selectedIndex = selectedIndex,
         cornerRadius = shapeCornerRadius(cornerRadius = 34.dp),
         ballAnimation = Parabolic(tween(300)),
@@ -60,7 +61,6 @@ fun BottomBarComponent(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .noRippleClickable {
-                        // Navega para a rota. 'popUpTo' e 'launchSingleTop' evitam empilhar telas
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true

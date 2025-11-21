@@ -2,11 +2,9 @@
 
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
-import android.app.Activity
 import android.content.res.Configuration
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,47 +55,68 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 import com.github.rafaabrito.projectgreenmind.ui.theme.ScreenOrientation
 import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
-
+import androidx.compose.ui.platform.LocalContext
+import com.github.rafaabrito.projectgreenmind.data.model.User
+import androidx.credentials.CredentialManager
+import androidx.credentials.exceptions.GetCredentialException
+import kotlinx.coroutines.CancellationException
 @Composable
     fun LoginScreen(
         viewModel: LoginViewModel = hiltViewModel(),
         onLoginSuccess: (userId: Int) -> Unit,
         onNavigateToRegister: () -> Unit,
     ) {
+    val context = LocalContext.current
+    val credentialManager = remember(context) { CredentialManager.create(context) }
+
     val loginState by viewModel.loginState.collectAsState()
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.handleGoogleSignInResult(result.data)
-            } else {
-                viewModel.handleGoogleSignInResult(null)
-            }
-        }
-    )
 
     // Estados locais para campos
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     // Indica se o formulário está carregando
-    val isLoading = loginState is LoginViewModel.LoginState.Loading
+    val isEnabled = loginState is LoginViewModel.LoginState.Loading
 
+    // Tratamento de Sucesso e Erro do Login Local/Firebase
     LaunchedEffect(loginState) {
-        when (val state = loginState) {
+        when (loginState) {
             is LoginViewModel.LoginState.Success -> {
-                onLoginSuccess(state.user.userId) // Passa o ID do usuário
+                Toast.makeText(context, "Bem-vindo!", Toast.LENGTH_SHORT).show()
+                onLoginSuccess((loginState as LoginViewModel.LoginState.Success).user.userId)
+                viewModel.resetState()
             }
             is LoginViewModel.LoginState.Error -> {
-                // Mostrar Toast
+                Toast.makeText(context, (loginState as LoginViewModel.LoginState.Error).message, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
             }
-            // 🟢 NOVO TRATAMENTO PARA LANÇAR O INTENTSENDER
-            is LoginViewModel.LoginState.AwaitingSocialAuth -> {
-                launcher.launch(
-                    IntentSenderRequest.Builder(state.intentSender).build()
+            else -> {}
+        }
+    }
+
+    // Este LaunchedEffect executa a requisição assíncrona
+    LaunchedEffect(loginState) {
+        if (loginState is LoginViewModel.LoginState.AwaitingSocialAuth) {
+            val request = (loginState as LoginViewModel.LoginState.AwaitingSocialAuth).request
+            try {
+                // Inicia o fluxo do Credential Manager com a requisição do Google ID Token
+                val result = credentialManager.getCredential(
+                    context = context,
+                    request = request
                 )
+
+                // Passa o resultado para o ViewModel processar o ID Token
+                viewModel.handleGoogleSignInCredential(result.credential)
+
+            } catch (e: Exception) {
+                if (e is CancellationException) {
+                    // Ignora, o usuário cancelou.
+                } else if (e is GetCredentialException) {
+                    // Loga e mostra um erro genérico na tela.
+                    Toast.makeText(context, "Falha no login social. Tente novamente.", Toast.LENGTH_LONG).show()
+                }
+                viewModel.resetState()
             }
-            else -> Unit
         }
     }
 
@@ -109,9 +128,9 @@ import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
                 onEmailChange = { email = it },
                 password = password,
                 onPasswordChange = { password = it },
-                isLoading = isLoading,
+                isLoading = isEnabled,
                 onLoginClick = { viewModel.signInLocal(email, password) },
-                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
+                onGoogleClick = { viewModel.getGoogleSignInRequest() },
                 onNavigateToRegister = onNavigateToRegister
             )
         } else {
@@ -121,9 +140,9 @@ import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
                 onEmailChange = { email = it },
                 password = password,
                 onPasswordChange = { password = it },
-                isLoading = isLoading,
+                isLoading = isEnabled,
                 onLoginClick = { viewModel.signInLocal(email, password) },
-                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
+                onGoogleClick = { viewModel.getGoogleSignInRequest() },
                 onNavigateToRegister = onNavigateToRegister
             )
         }

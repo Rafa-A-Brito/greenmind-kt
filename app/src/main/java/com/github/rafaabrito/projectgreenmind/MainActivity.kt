@@ -27,27 +27,15 @@ import com.github.rafaabrito.projectgreenmind.ui.viewModel.MainViewModel
 import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
 import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.CustomCredential
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.navigation.NavHostController
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import com.facebook.AccessToken
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import com.github.rafaabrito.projectgreenmind.domain.utils.auth.AuthService
 import com.github.rafaabrito.projectgreenmind.ui.components.DrawerContainer
-import com.google.firebase.Firebase
 
 @AndroidEntryPoint
 @Suppress("DEPRECATION")
@@ -100,7 +88,7 @@ class MainActivity : ComponentActivity() {
                         LoginScreen(
                             onLoginSuccess = { userId ->
                                 rootNavController.navigate(MainAppGraph) {
-                                    popUpTo<Login> { inclusive = true }
+                                    popUpTo(Login) { inclusive = true }
                                 }
                             },
                             onNavigateToRegister = {
@@ -112,13 +100,11 @@ class MainActivity : ComponentActivity() {
                     composable<Register> {
                         RegisterScreen(
                             onNavigateToLogin = {
-                                rootNavController.navigate(Login) {
-                                    popUpTo<Register> { inclusive = true }
-                                }
+                                rootNavController.popBackStack()
                             },
-                            onRegisterSuccess = {
-                                rootNavController.navigate(Login) {
-                                    popUpTo<Register> { inclusive = true }
+                            onRegisterSuccess = { userId ->
+                                rootNavController.navigate(MainAppGraph) {
+                                    popUpTo(Register) { inclusive = true }
                                 }
                             })
                     }
@@ -154,7 +140,12 @@ class MainActivity : ComponentActivity() {
                                     CommunityScreen()
                                 }
                                 composable(NavigationBarItems.Person.route) {
-                                    ProfileScreen(onSignOut = signOutAction)                                }
+                                    ProfileScreen(onSignOut = signOutAction,
+                                        onNavigateToSettings = {
+                                            // Exemplo: rootNavController.navigate(SettingsGraph)
+                                            // Você precisará definir a rota SettingsGraph ou SettingsScreen
+                                        }  )
+                                }
                             }
                         }
                     }

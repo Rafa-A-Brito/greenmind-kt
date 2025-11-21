@@ -1,10 +1,7 @@
-// GoogleOneTapModule.kt
-
 package com.github.rafaabrito.projectgreenmind.domain.utils.auth
 
 import android.content.Context
-import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.auth.api.identity.SignInClient
+import androidx.credentials.CredentialManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,11 +12,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object GoogleOneTapModule {
-
     @Provides
     @Singleton
-    fun provideOneTapClient(@ApplicationContext context: Context): SignInClient {
-        // Identity.getSignInClient retorna a instância OneTapClient
-        return Identity.getSignInClient(context)
+    fun provideCredentialManager(@ApplicationContext context: Context): CredentialManager {
+        // 🟢 Adiciona a provisão para o CredentialManager
+        return CredentialManager.create(context)
     }
 }

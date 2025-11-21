@@ -26,9 +26,9 @@ public class UserRepository @Inject constructor(
         return userDao.getUser(id)
     }
 
-    suspend fun createNewUser(name: String, email: String, password: String): Boolean {
+    suspend fun createNewUser(name: String, email: String, password: String): UserEntity? {
         if (userDao.getUserByEmail(email) != null) {
-            return false // Email já cadastrado
+            return null // Email já cadastrado
         }
         
         val hashedPassword = passwordHasher.hashPassword(password)
@@ -41,7 +41,7 @@ public class UserRepository @Inject constructor(
         )
         
         userDao.saveUser(newUser)
-        return true
+        return userDao.getUserByEmail(email)
     }
 
     suspend fun getUserByAuthId(authId: String): UserEntity? {

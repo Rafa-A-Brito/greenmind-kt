@@ -1,10 +1,6 @@
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
-import android.app.Activity
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,14 +50,20 @@ import com.github.rafaabrito.projectgreenmind.ui.viewModel.RegisterViewModel
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.RegisterViewModel.RegisterState
 import com.github.rafaabrito.projectgreenmind.R
 
+import androidx.credentials.CredentialManager
+import androidx.credentials.exceptions.GetCredentialException
+import kotlinx.coroutines.CancellationException
+
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel = hiltViewModel(),
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: (userId: Int) -> Unit,
     onNavigateToLogin: () -> Unit,
 ) {
     val context = LocalContext.current
     val registerState by viewModel.registerState.collectAsState()
+
+    val credentialManager = remember(context) { CredentialManager.create(context) }
 
     // Estados locais para campos (Fonte da Verdade na UI)
     var name by remember { mutableStateOf("") }
@@ -69,7 +71,7 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    val isLoading = registerState is RegisterState.Loading
+    val isEnabled = registerState is RegisterViewModel.RegisterState.Loading
 
     fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -77,38 +79,46 @@ fun RegisterScreen(
 
     val scrollState = rememberScrollState() // Definido fora do Column
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            // Chama o ViewModel para processar o resultado da Activity
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.handleGoogleSignInResult(result.data)
-            } else {
-                // Trata cancelamento
-                viewModel.handleGoogleSignInResult(null)
-            }
-        }
-    )
-
+    // Tratamento de Sucesso e Erro do Registro Local/Firebase
     LaunchedEffect(registerState) {
-        when (val state = registerState) {
+        when (registerState) {
             is RegisterState.Success -> {
-                onRegisterSuccess()
-                showToast("Registro efetuado com sucesso!")
+                Toast.makeText(context, "Registro efetuado com sucesso!", Toast.LENGTH_SHORT).show()
+                onRegisterSuccess((registerState as RegisterState.Success).user.userId)
+                viewModel.resetState()
             }
-
             is RegisterState.Error -> {
-                showToast(state.message)
-                println("Register Error: ${state.message}")
+                Toast.makeText(context, (registerState as RegisterState.Error).message, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
             }
-            // 🟢 TRATAMENTO PARA LANÇAR O INTENTSENDER
-            is RegisterState.AwaitingSocialAuth -> {
-                launcher.launch(
-                    IntentSenderRequest.Builder(state.intentSender).build()
-                )
-            }
+            else -> {}
+        }
+    }
 
-            else -> Unit
+    // Tratamento do NOVO fluxo de Credential Manager
+    LaunchedEffect(registerState) {
+        if (registerState is RegisterState.AwaitingSocialAuth) {
+            val request = (registerState as RegisterState.AwaitingSocialAuth).request
+            try {
+                // Inicia o fluxo do Credential Manager com a requisição do Google ID Token
+                val result = credentialManager.getCredential(
+                    context = context,
+                    request = request
+                )
+
+                // Passa o resultado para o ViewModel processar o ID Token
+                viewModel.handleGoogleSignInCredential(result.credential)
+
+            } catch (e: Exception) {
+                // Se o usuário cancelar ou houver erro (Ex: GetCredentialException)
+                if (e is CancellationException) {
+                    // Ignora, o usuário cancelou.
+                } else if (e is GetCredentialException) {
+                    // Loga e mostra um erro genérico na tela.
+                    Toast.makeText(context, "Falha no registro social. Tente novamente.", Toast.LENGTH_LONG).show()
+                }
+                viewModel.resetState()
+            }
         }
     }
 
@@ -141,15 +151,16 @@ fun RegisterScreen(
                         } else {
                             showToast("As senhas não coincidem.")
                         }
-                    },                    isLoading = isLoading
+                    },
+                    isLoading = isEnabled
                 )
                 Spacer(modifier = Modifier.height(30.dp))
 
                 DividerText()
                 Spacer(modifier = Modifier.height(20.dp))
                 SocialMediaRegisterSection(
-                    onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
-                    enabled = !isLoading
+                    onGoogleClick = { viewModel.getGoogleSignInRequest() },
+                    enabled = !isEnabled
                 )
             }
             Spacer(modifier = Modifier.weight(0.8f))

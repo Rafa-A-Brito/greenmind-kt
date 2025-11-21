@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
@@ -49,8 +50,10 @@ import androidx.compose.ui.unit.sp
 import com.github.rafaabrito.projectgreenmind.R
 import com.github.rafaabrito.projectgreenmind.ui.components.BottomBarComponent
 import com.github.rafaabrito.projectgreenmind.ui.components.TopBarComponent
+import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGrayBlue
 import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGrayViolet
 import com.github.rafaabrito.projectgreenmind.ui.theme.Inter
+import com.github.rafaabrito.projectgreenmind.ui.theme.MediumGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.MinimumGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.PaleGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
@@ -105,22 +108,20 @@ fun EcoTasksScreen(){
         EcoTasksSearchBar()
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Adicionado o Container das Tarefas (LazyColumn)
         EcoTasksContainer()
 
         Spacer(modifier = Modifier.height(16.dp))
-        // Card de Dicas
         TipsTasks()
         }
 }
 
 @Composable
 fun EcoTasksTopSection() {
-    Box(
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(DarkGrayViolet, RoundedCornerShape(12.dp))
-            .padding(horizontal = 5.dp, vertical = 5.dp)
+            .background(MediumGray, RoundedCornerShape(10.dp))
+            .padding(horizontal = 15.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically
     )
     {
         Row(
@@ -128,15 +129,19 @@ fun EcoTasksTopSection() {
                 .padding(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Box(
                 modifier = Modifier
-                    .size(35.dp),
+                    .size(40.dp)
+                    .clip(CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
+                    modifier = Modifier
+                        .background(DarkGrayBlue,CircleShape)
+                        .size(45.dp),
                     painter = painterResource(R.drawable.challenges),
                     contentDescription = "Desafios",
-                    modifier = Modifier.size(40.dp)
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))

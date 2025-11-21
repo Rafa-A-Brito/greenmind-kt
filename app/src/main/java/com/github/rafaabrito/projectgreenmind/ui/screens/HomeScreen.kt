@@ -1,12 +1,8 @@
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
-
-import android.media.Image
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,28 +24,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Recycling
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stars
-import androidx.compose.material.icons.outlined.Leaderboard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,42 +40,28 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.exyte.animatednavbar.AnimatedNavigationBar
-import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
-import com.exyte.animatednavbar.animation.indendshape.Height
-import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
-import com.github.rafaabrito.projectgreenmind.ui.theme.GrotesqueGreen
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.exyte.animatednavbar.utils.noRippleClickable
 import com.github.rafaabrito.projectgreenmind.R
-import com.github.rafaabrito.projectgreenmind.ui.components.BottomBarComponent
-import com.github.rafaabrito.projectgreenmind.ui.components.TopBarComponent
 import com.github.rafaabrito.projectgreenmind.ui.theme.Black
 import com.github.rafaabrito.projectgreenmind.ui.theme.BlackShade
 import com.github.rafaabrito.projectgreenmind.ui.theme.BrightCyanGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.CyanLime
+import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.DarkSpringGreen
-import com.github.rafaabrito.projectgreenmind.ui.theme.ForestGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
 import com.github.rafaabrito.projectgreenmind.ui.theme.Inter
-import com.github.rafaabrito.projectgreenmind.ui.theme.LightGreenCyan
-import com.github.rafaabrito.projectgreenmind.ui.theme.LightShadeGreen
-import com.github.rafaabrito.projectgreenmind.ui.theme.MediumBlack
+import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
 import com.github.rafaabrito.projectgreenmind.ui.theme.MediumGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.Micro5
-import com.github.rafaabrito.projectgreenmind.ui.theme.MinimumGray
+import com.github.rafaabrito.projectgreenmind.ui.theme.OutGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
-import com.github.rafaabrito.projectgreenmind.ui.theme.RobotoMono
-import com.github.rafaabrito.projectgreenmind.ui.theme.SeafomGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.StrongGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,7 +72,7 @@ fun PlaceholderUserImage(modifier: Modifier = Modifier) {
         modifier = modifier
             .size(50.dp)
             .clip(CircleShape)
-            .background(Color.White)
+            .background(White)
     ) {
         // Ícone placeholder ou imagem real do usuário
         Icon(
@@ -139,7 +108,6 @@ fun HomeScreen() {
 
 @Composable
 fun TopSection() {
-    // Cabeçalho de Boas-vindas e Nível
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -205,7 +173,6 @@ fun TopSection() {
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Cards de Conquistas (Pontos, Ofensiva, Desafios)
     Row(
         modifier = Modifier.fillMaxWidth()
             .background(StrongGreen)
@@ -215,24 +182,21 @@ fun TopSection() {
         AchievementCard(
             title = "Pontos",
             value = "38420 XP",
-            icon = Icons.Default.EmojiEvents,
-            iconTint = White,
+            icon = R.drawable.trophy,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         AchievementCard(
             title = "Ofensiva (streak)",
             value = "3 semanas",
-            icon = Icons.Default.LocalFireDepartment, // Ícone de Chama
-            iconTint = Color.Red,
+            icon = R.drawable.fire, // Ícone de Chama
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         AchievementCard(
             title = "Desafios concluídos",
             value = "85%",
-            icon = Icons.Default.Stars,
-            iconTint = GreenCyanLight,
+            icon = R.drawable.medal_v2,
             modifier = Modifier.weight(1f)
         )
     }
@@ -242,8 +206,7 @@ fun TopSection() {
 fun AchievementCard(
     title: String,
     value: String,
-    icon: ImageVector,
-    iconTint: Color,
+    icon: Int,
     modifier: Modifier = Modifier
 ) {
         Column(
@@ -257,22 +220,21 @@ fun AchievementCard(
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(CircleShape)
-                    .background(LightGreenCyan)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(GreenCyanLight)
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
+                Image(
+                    painter = painterResource(icon),
                     contentDescription = title,
-                    tint = iconTint,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = title,
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 fontFamily = Roboto,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
@@ -283,7 +245,7 @@ fun AchievementCard(
                 fontSize = 16.sp,
                 fontFamily = Roboto,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.Blue,
+                color = Color(0xFF26B6AF),
                 textAlign = TextAlign.Center
             )
         }
@@ -297,7 +259,7 @@ fun MiddleSection() {
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(CyanLime)
-            .padding(16.dp)
+            .padding(8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -328,21 +290,23 @@ fun MiddleSection() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(2.dp)
-                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                .padding(3.dp)
+                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(5.dp))
         ) {
             Text(
-                text = "Antes de comprar, pense: eu realmente preciso disso? Praticar o consumo consciente ajuda a economizar recursos naturais, reduzir o desperdício e até poupar dinheiro. 🌿",
+                text = "Antes de comprar, pense: eu realmente preciso disso? Praticar o consumo consciente ajuda a economizar " +
+                        "recursos naturais, reduzir o desperdício e até poupar dinheiro. 🌿",
                 color = White,
                 fontFamily = Inter,
                 fontWeight = FontWeight.Medium,
-                fontSize = 16.sp
+                fontSize = 18   .sp,
+                modifier = Modifier.padding(6.dp)
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(
             modifier = Modifier
-                .width(250.dp)
+                .width(280.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
                 .padding(3.dp)
@@ -381,7 +345,7 @@ fun MiddleSection() {
         Icon(
             imageVector = Icons.Default.Build,
             contentDescription = "Ações Rápidas",
-            tint = DarkSpringGreen,
+            tint = DarkGray,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
@@ -397,24 +361,25 @@ fun MiddleSection() {
 
     Row(
         modifier = Modifier.fillMaxWidth()
-            .background(StrongGreen),
+            .background(StrongGreen, RoundedCornerShape(10.dp))
+            .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         QuickActionCard(
             text = "Ecopontos",
-            icon = Icons.Default.LocationOn,
+            icon = R.drawable.local,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         QuickActionCard(
             text = "Registrar descarte",
-            icon = Icons.Default.Recycling,
+            icon = R.drawable.sustainable_logo,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         QuickActionCard(
             text = "Desafios",
-            icon = Icons.Default.EmojiEvents,
+            icon = R.drawable.trophy_2d,
             modifier = Modifier.weight(1f)
         )
     }
@@ -423,7 +388,7 @@ fun MiddleSection() {
 @Composable
 fun QuickActionCard(
     text: String,
-    icon: ImageVector,
+    icon: Int,
     modifier: Modifier = Modifier
 ) {
         Column(
@@ -442,10 +407,9 @@ fun QuickActionCard(
                     .padding(5.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
+                Image(
+                    painter = painterResource(icon),
                     contentDescription = text,
-                    tint = Color(0xFF0BA858),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -486,32 +450,51 @@ fun BottomSection() {
             .background(Color(0xFF0BA858))
             .padding(16.dp)
     ) {
-        // Título/Contador de XP
+        // Título/ de XP
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "PONTOS",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = GreenCyanLight
-            )
-            Text(
-                text = "300/450 XP",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = White
-            )
+            Row(
+
+            ) {
+                Image(
+                    modifier = Modifier.size(35.dp),
+                    painter = painterResource(R.drawable.xp_user),
+                    contentDescription = "Xp"
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+
+                Text(
+                    text = "Pontos",
+                    fontFamily = Micro5,
+                    fontSize = 35.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = White
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .background(OutGreen,RoundedCornerShape(10.dp))
+            ) {
+                Text(
+                    text = "300/450 XP",
+                    fontSize = 30.sp,
+                    fontFamily = Micro5,
+                    fontWeight = FontWeight.Normal,
+                    color = White
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         // Barra de Progresso Customizada
         LinearProgressIndicatorCustom(
-            progress = 300f / 450f, // Exemplo: 300 de 450 XP
-            progressColor = BrightCyanGreen,
+            progress = 300f / 450f,
+            progressColor = DarkSpringGreen,
             backgroundColor = Color(0xFF4C4D4E),
             modifier = Modifier
                 .fillMaxWidth()

@@ -2,14 +2,17 @@ package com.github.rafaabrito.projectgreenmind.domain.utils.auth
 
 import android.content.Intent
 import android.content.IntentSender
+import androidx.credentials.GetCredentialRequest
 
 interface AuthService {
 
     suspend fun signInWithEmailPassword(email: String, password: String): AuthResponse
 
     suspend fun signUpWithEmailPassword(email: String, password: String, name: String?): AuthResponse
-    suspend fun startSocialSignIn(provider: SocialProvider): IntentSender?
-    suspend fun completeSocialSignIn(intent: Intent): AuthResponse
+
+    suspend fun getGoogleIdCredentialRequest(): GetCredentialRequest?
+
+    suspend fun signInWithGoogleIdToken(idToken: String): AuthResponse
 
     data class AuthResult(
         val authId: String,
@@ -17,17 +20,19 @@ interface AuthService {
         val name: String?
     )
 
-    sealed interface AuthResponse {
+    sealed class AuthResponse {
+        // A chave para o Room! O authId será o Firebase UID.
         data class Success(
-            val authId: String,
-            val email: String,
             val name: String?,
-            val isNewUser: Boolean
-        ) : AuthResponse
-
-        data class Error(val message: String) : AuthResponse
+            val email: String,
+            val authId: String, // Firebase UID
+            val profilePictureUrl: String?
+        ) : AuthResponse()
+        data class Error(val message: String) : AuthResponse()
+        data object Cancelled : AuthResponse()
+        data object Unknown : AuthResponse()
     }
-
     enum class SocialProvider {
         GOOGLE
-    }}
+    }
+}
