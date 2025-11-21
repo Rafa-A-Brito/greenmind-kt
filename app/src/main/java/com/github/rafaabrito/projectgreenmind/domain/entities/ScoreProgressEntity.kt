@@ -33,7 +33,7 @@ import androidx.room.PrimaryKey
 data class ScoreProgressEntity(
     @PrimaryKey(autoGenerate = true) val id : Int = 0,
     @ColumnInfo(name="userId") val userId: Int,
-    @ColumnInfo(name="taskId") val taskId: String,
+    @ColumnInfo(name="taskId") val taskId: Int,
     // Campos Adicionados
     @ColumnInfo(name="scoreEarned") val scoreEarned: Int, // Pontuação ganha por completar esta tarefa
     @ColumnInfo(name="isCompleted") val isCompleted: Boolean = false // Status de conclusão da tarefa

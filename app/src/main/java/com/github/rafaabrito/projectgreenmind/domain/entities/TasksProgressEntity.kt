@@ -29,17 +29,12 @@ import androidx.room.ForeignKey.Companion.CASCADE
 )
 data class TasksProgressEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    @ColumnInfo(name = "userId") val userId: String,
-    @ColumnInfo(name = "missionId") val missionId: String,
-
-    // Campos Originais
-    @ColumnInfo(name = "missionStatus") val missionStatus: String, // Ex: "PENDING", "IN_PROGRESS", "COMPLETED"
-    @ColumnInfo(name = "currentProgress") val currentProgress: Int, // Ex: 0 a 100
-
-    // Campos Adicionais Sugeridos
+    @ColumnInfo(name = "userId") val userId: Int,
+    @ColumnInfo(name = "missionId") val missionId: Int,
+    @ColumnInfo(name = "missionStatus") val missionStatus: String,
+    @ColumnInfo(name = "currentProgress") val currentProgress: Int,
     @ColumnInfo(name = "startDate") val startDate: Long, // Timestamp de início
     @ColumnInfo(name = "lastUpdated") val lastUpdated: Long, // Timestamp da última alteração
     @ColumnInfo(name = "attemptsCount") val attemptsCount: Int = 0,
-
     @ColumnInfo(name = "finishingDate") val finishingDate: Long? = null, // Melhor usar Long e permitir Nullable
 )

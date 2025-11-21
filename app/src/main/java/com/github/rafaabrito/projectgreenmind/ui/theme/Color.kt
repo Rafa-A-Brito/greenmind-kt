@@ -55,3 +55,13 @@ val BrightCyan = Color(0xFF41F097)
 val SaturedGreen = Color(0xFF06C463)
 val SlightlyGreen = Color(0xB37BC8A1)
 val PaleGreen = Color(0xFFC4F7DD)
+
+// HomeScreen
+val CyanLime = Color(0xFF249365)
+val DarkSpringGreen = Color(0xFF0BA858)
+val GreenCyanLight = Color(0xFFA7E9C7)
+val BrightCyanGreen = Color(0xCC41F097)
+val LightGreenCyan = Color(0xFFA7E9C7)
+val StrongGreen = Color(0xFF0BA858)
+val OutGreen = Color(0xFF3F9368)
+val MediumGray = Color(0xFF6C6A6D)

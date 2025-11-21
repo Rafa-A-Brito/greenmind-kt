@@ -3,17 +3,18 @@ package com.github.rafaabrito.projectgreenmind.data.repository
 import com.github.rafaabrito.projectgreenmind.domain.dao.LocalEcoDao
 import com.github.rafaabrito.projectgreenmind.domain.entities.LocalEcoEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import javax.inject.Inject
+import com.github.rafaabrito.projectgreenmind.data.services.OsmService
+import com.github.rafaabrito.projectgreenmind.data.model.EcoDetails
+import com.github.rafaabrito.projectgreenmind.data.model.Coordinates
 
-// Assumindo que você terá uma interface para seu serviço de rede OSM
-// interface OsmService { /* fun getCoordinatesForAddress(...) */ }
 
-class LocalEcoRepository(
+
+class LocalEcoRepository @Inject constructor(
     private val localEcoDao: LocalEcoDao,
-    // private val osmService: OsmService // Para lógica de rede, se aplicável
+    private val osmService: OsmService
 ) {
-    // ----------------------------------------------------------------------
-    // --- 1. Funções de Persistência (Abstracting DAO) ---
-    // ----------------------------------------------------------------------
 
     fun getAllLocalEco(): Flow<List<LocalEcoEntity>> {
         return localEcoDao.getAllLocalEco()
@@ -31,53 +32,45 @@ class LocalEcoRepository(
         localEcoDao.delete(localEco)
     }
 
-    // ----------------------------------------------------------------------
-    // --- 2. Funções de Lógica de Negócio (Geocodificação/Busca) ---
-    // ----------------------------------------------------------------------
-    
-    /**
-     * Tenta buscar coordenadas para um endereço e salvar como LocalEcoEntity.
-     * Esta função seria o ponto de contato com a API do OSM.
-     * @param address O endereço completo (ex: "Rua X, 123, São Paulo")
-     * @param name Nome para o Ecoponto
-     * @return LocalEcoEntity se o endereço for encontrado e salvo.
-     */
     suspend fun geocodeAndSaveLocalEco(address: String, name: String): LocalEcoEntity? {
-        // Exemplo de lógica (requer uma chamada de rede real)
-        
-        // 1. Chamar o serviço OSM para obter latitude/longitude
-        // val coordinates = osmService.getCoordinatesForAddress(address)
-        
-        /* if (coordinates != null) {
-            // 2. Criar a entidade e preencher os demais campos (reverse geocoding)
+
+        val coordinates = osmService.getCoordinatesForAddress(address)
+
+        if (coordinates != null) {
+
+            val ecoDetails = osmService.getEcoDetailsForCoordinates(
+                coordinates.lat,
+                coordinates.long
+            ) ?: getFallbackEcoDetails()
+
             val newEntity = LocalEcoEntity(
                 lat = coordinates.lat,
                 long = coordinates.long,
                 localName = name,
-                // ... preencher os demais campos (street, city, etc.)
+                street = ecoDetails.street,
+                numero = ecoDetails.numero,
+                neighborhood = ecoDetails.neighborhood,
+                city = ecoDetails.city,
+                cep = ecoDetails.cep,
+                distance = ecoDetails.distance,
+                recyclableTypes = ecoDetails.recyclableTypes
             )
-            // 3. Salvar no Room
+
             localEcoDao.insert(newEntity)
             return newEntity
         }
-        */
-        
-        // Retorno de exemplo (REMOVER EM PRODUÇÃO)
-        if (address.isNotEmpty()) {
-            val exampleEntity = LocalEcoEntity(
-                lat = -23.5505,
-                long = -46.6333,
-                localName = name,
-                street = "Rua Exemplo",
-                numero = "100",
-                neighborhood = "Centro",
-                city = "São Paulo",
-                cep = "01000-000"
-            )
-            localEcoDao.insert(exampleEntity)
-            return exampleEntity
-        }
 
         return null
+    }
+     private fun getFallbackEcoDetails(): EcoDetails {
+        return EcoDetails(
+            street = "Rua Desconhecida",
+            numero = "S/N",
+            neighborhood = "Não Identificado",
+            city = "Cidade Padrão",
+            cep = "00000-000",
+            distance = "99 km",
+            recyclableTypes = listOf("Não especificado")
+        )
     }
 }

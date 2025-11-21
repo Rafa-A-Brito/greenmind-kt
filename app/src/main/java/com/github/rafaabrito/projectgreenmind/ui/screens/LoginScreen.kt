@@ -2,7 +2,11 @@
 
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
+import android.app.Activity
 import android.content.res.Configuration
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,15 +23,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,74 +45,142 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.github.rafaabrito.projectgreenmind.ui.components.LoginTextField
 import com.github.rafaabrito.projectgreenmind.R
 import com.github.rafaabrito.projectgreenmind.ui.components.SocialMediaLogin
 import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 import com.github.rafaabrito.projectgreenmind.ui.theme.ScreenOrientation
 import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
+import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit) {
-    Surface {
-        if (ScreenOrientation == Configuration.ORIENTATION_PORTRAIT){
-            PortraitLoginScreen(onLoginSuccess = onLoginSuccess, onNavigateToRegister = onNavigateToRegister)
-        }else{
-            PortraitLoginScreen(onLoginSuccess = onLoginSuccess, onNavigateToRegister = onNavigateToRegister)
+    fun LoginScreen(
+        viewModel: LoginViewModel = hiltViewModel(),
+        onLoginSuccess: (userId: Int) -> Unit,
+        onNavigateToRegister: () -> Unit,
+    ) {
+    val loginState by viewModel.loginState.collectAsState()
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                viewModel.handleGoogleSignInResult(result.data)
+            } else {
+                viewModel.handleGoogleSignInResult(null)
+            }
+        }
+    )
+
+    // Estados locais para campos
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    // Indica se o formulário está carregando
+    val isLoading = loginState is LoginViewModel.LoginState.Loading
+
+    LaunchedEffect(loginState) {
+        when (val state = loginState) {
+            is LoginViewModel.LoginState.Success -> {
+                onLoginSuccess(state.user.userId) // Passa o ID do usuário
+            }
+            is LoginViewModel.LoginState.Error -> {
+                // Mostrar Toast
+            }
+            // 🟢 NOVO TRATAMENTO PARA LANÇAR O INTENTSENDER
+            is LoginViewModel.LoginState.AwaitingSocialAuth -> {
+                launcher.launch(
+                    IntentSenderRequest.Builder(state.intentSender).build()
+                )
+            }
+            else -> Unit
+        }
+    }
+
+    Surface(modifier = Modifier.fillMaxSize()) {
+        // Lógica de orientação mantida, mas agora chamando a versão atualizada
+        if (ScreenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            PortraitLoginScreen(
+                email = email,
+                onEmailChange = { email = it },
+                password = password,
+                onPasswordChange = { password = it },
+                isLoading = isLoading,
+                onLoginClick = { viewModel.signInLocal(email, password) },
+                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
+                onNavigateToRegister = onNavigateToRegister
+            )
+        } else {
+            // Se Landscape for igual a Portrait, use os mesmos argumentos
+            PortraitLoginScreen(
+                email = email,
+                onEmailChange = { email = it },
+                password = password,
+                onPasswordChange = { password = it },
+                isLoading = isLoading,
+                onLoginClick = { viewModel.signInLocal(email, password) },
+                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
+                onNavigateToRegister = onNavigateToRegister
+            )
         }
     }
 }
 
 @Composable
-private fun LandscapeLoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit){
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 30.dp),
-        verticalArrangement = Arrangement.Center)
-    {
-        LoginSection(onLoginSuccess = onLoginSuccess)
-        SocialMediaSection()
-    }
-}
-
-@Composable
-private fun PortraitLoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit){
+private fun PortraitLoginScreen(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    isLoading: Boolean,
+    onLoginClick: () -> Unit,
+    onGoogleClick: () -> Unit,
+    onNavigateToRegister: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-    ){
-        // Possível estruturação de alteração de tema
-
-        TopSection()
+    ) {
+        TopLoginSection()
         Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium2))
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 30.dp))
-        {
-            LoginSection(onLoginSuccess = onLoginSuccess)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 30.dp)
+        ) {
+            LoginSection(
+                email = email,
+                onEmailChange = onEmailChange,
+                password = password,
+                onPasswordChange = onPasswordChange,
+                onLoginClick = onLoginClick,
+                isLoading = isLoading,
+                isButtonEnabled = email.isNotEmpty() && password.isNotEmpty() && !isLoading
+            )
             Spacer(modifier = Modifier.height(MaterialTheme.dimens.medium1))
 
             DividerText()
             Spacer(modifier = Modifier.height(20.dp))
-            SocialMediaSection()
 
+            SocialMediaSection(
+                onGoogleClick = onGoogleClick,
+                enabled = !isLoading
+            )
         }
-        Spacer( modifier = Modifier.weight(0.8f))
-        CreateAccount(onNavigateToRegister = onNavigateToRegister)
-        Spacer( modifier = Modifier.weight(0.3f))
 
+        Spacer(modifier = Modifier.weight(0.8f))
+        CreateAccount(onNavigateToRegister = onNavigateToRegister)
+        Spacer(modifier = Modifier.weight(0.3f))
     }
 }
 @Composable
-private fun TopSection() {
+private fun TopLoginSection() {
 
     val screenHeight = LocalConfiguration.current.screenHeightDp
     Box(
@@ -154,34 +232,66 @@ private fun TopSection() {
     }
 }
 @Composable
-private fun LoginSection(onLoginSuccess:() -> Unit){
+private fun LoginSection(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    onLoginClick: () -> Unit,
+    isLoading: Boolean,
+    isButtonEnabled: Boolean
+) {
+    // 1. Campo de Email
     LoginTextField(
+        value = email,
+        onValueChange = onEmailChange,
         label = "Email",
         trailing = "",
-        modifier = Modifier.fillMaxWidth())
+        keyboardType = KeyboardType.Email,
+        enabled = !isLoading,
+        modifier = Modifier.fillMaxWidth()
+    )
     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
+
+    // 2. Campo de Senha
     LoginTextField(
+        value = password,
+        onValueChange = onPasswordChange,
         label = "Senha",
         trailing = "Esqueceu a senha?",
-        modifier = Modifier.fillMaxWidth())
+        isPassword = true,
+        keyboardType = KeyboardType.Password,
+        enabled = !isLoading,
+        modifier = Modifier.fillMaxWidth()
+    )
     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
+
+    // 3. Botão de Login
     Button(
         modifier = Modifier
             .fillMaxWidth()
             .height(MaterialTheme.dimens.buttonHeight),
-        onClick = onLoginSuccess,
+        onClick = onLoginClick, // Executa a ação do ViewModel
+        enabled = isButtonEnabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Black,
             contentColor = Color.White
         ),
         shape = RoundedCornerShape(size = 4.dp)
-    )
-    {
-        Text(text = "Log in",
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium ))
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        } else {
+            Text(
+                text = "Log in",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium)
+            )
+        }
     }
 }
-
 
 @Composable
 private fun DividerText(){
@@ -216,16 +326,18 @@ private fun DividerText(){
 }
 
 @Composable
-private fun SocialMediaSection(){
+private fun SocialMediaSection(
+    onGoogleClick: () -> Unit,
+    enabled: Boolean
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.Center
     ) {
         SocialMediaLogin(icon = R.drawable.google, text = "Google",
-            modifier = Modifier.weight(1f)) { }
-        Spacer(modifier = Modifier.width(MaterialTheme.dimens.small3))
-        SocialMediaLogin(icon = R.drawable.facebook, text = "Facebook",
-            modifier = Modifier.weight(1f)) { }
+            modifier = Modifier.weight(1f),
+            enabled = enabled,
+            onClick = onGoogleClick)
     }
 }
 
@@ -266,5 +378,4 @@ private fun ColumnScope.CreateAccount(
 @Preview
 @Composable
 private fun LoginPreview() {
-    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = { })
-}
+    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = { })}

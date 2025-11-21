@@ -1,38 +1,73 @@
 package com.github.rafaabrito.projectgreenmind
 
-import android.os.Bundle
+import android.content.Intent
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.navigation.NavHostController
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.github.rafaabrito.projectgreenmind.ui.components.BottomBarComponent
 import com.github.rafaabrito.projectgreenmind.ui.components.NavigationBarItems
-import com.github.rafaabrito.projectgreenmind.ui.screens.CommunityScreen
-import com.github.rafaabrito.projectgreenmind.ui.screens.EcoScreen
-import com.github.rafaabrito.projectgreenmind.ui.screens.EcoTasksScreen
-import com.github.rafaabrito.projectgreenmind.ui.screens.HomeScreen
-import com.github.rafaabrito.projectgreenmind.ui.screens.LoginScreen
-import com.github.rafaabrito.projectgreenmind.ui.screens.PresentationScreen
-import com.github.rafaabrito.projectgreenmind.ui.screens.ProfileScreen
-import com.github.rafaabrito.projectgreenmind.ui.screens.RegisterScreen
+import com.github.rafaabrito.projectgreenmind.ui.screens.*
 import com.github.rafaabrito.projectgreenmind.ui.theme.ProjectGreenMindTheme
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.MainViewModel
-import kotlinx.serialization.Serializable
 
+// Imports para Credential Manager e Firebase
+import androidx.credentials.Credential
+import androidx.credentials.CredentialManager
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
+import androidx.credentials.exceptions.ClearCredentialException
+import androidx.navigation.NavHostController
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import com.facebook.AccessToken
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import com.github.rafaabrito.projectgreenmind.domain.utils.auth.AuthService
+import com.github.rafaabrito.projectgreenmind.ui.components.DrawerContainer
+import com.google.firebase.Firebase
+
+@AndroidEntryPoint
+@Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
+    private val mainViewModel: MainViewModel by viewModels()
+    private val credentialManager by lazy { CredentialManager.create(this) }
     private val viewModel by viewModels<MainViewModel>()
-    override fun onCreate(savedInstanceState: Bundle?) {
+
+    private val TAG = "AuthActivity"
+
+    // Membros da classe
+    @Inject
+    lateinit var firebaseAuth: FirebaseAuth
+    @Inject
+    lateinit var authService: AuthService
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
         val splashScreen = installSplashScreen()
-        super.onCreate(savedInstanceState)
+
+        super.onCreate(savedInstanceState) // Posição mais segura
 
         splashScreen.apply {
             setKeepOnScreenCondition {
@@ -51,9 +86,7 @@ class MainActivity : ComponentActivity() {
                     composable<Presentation> {
                         PresentationScreen(
                             onNavigateToHome = {
-                                // Navegação para Home
                                 rootNavController.navigate(Login) {
-                                    // Remove Presentation da 'back stack' para Login ser a tela principal
                                     popUpTo<Presentation> { inclusive = true }
                                 }
                             },
@@ -65,7 +98,7 @@ class MainActivity : ComponentActivity() {
 
                     composable<Login> {
                         LoginScreen(
-                            onLoginSuccess = {
+                            onLoginSuccess = { userId ->
                                 rootNavController.navigate(MainAppGraph) {
                                     popUpTo<Login> { inclusive = true }
                                 }
@@ -77,62 +110,99 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable<Register> {
-                        RegisterScreen()
+                        RegisterScreen(
+                            onNavigateToLogin = {
+                                rootNavController.navigate(Login) {
+                                    popUpTo<Register> { inclusive = true }
+                                }
+                            },
+                            onRegisterSuccess = {
+                                rootNavController.navigate(Login) {
+                                    popUpTo<Register> { inclusive = true }
+                                }
+                            })
                     }
 
                     composable<MainAppGraph> {
-                        // O NavController gerencia internamente
-                        MainScreen()
+                        val mainAppNavController = rememberNavController()
+
+                        val signOutAction = {
+                            signOut()
+                            rootNavController.navigate(Login) {
+                                popUpTo<MainAppGraph> { inclusive = true }
+                            }
+                        }
+
+                        MainScreen(
+                            mainAppNavController = mainAppNavController
+                        ) { paddingValues ->
+                            NavHost(
+                                navController = mainAppNavController,
+                                startDestination = NavigationBarItems.House.route,
+                                modifier = Modifier.padding(paddingValues)
+                            ) {
+                                composable(NavigationBarItems.House.route) {
+                                    HomeScreen()
+                                }
+                                composable(NavigationBarItems.Local.route) {
+                                    EcoScreen()
+                                }
+                                composable(NavigationBarItems.Trophy.route) {
+                                    EcoTasksScreen()
+                                }
+                                composable(NavigationBarItems.Community.route) {
+                                    CommunityScreen()
+                                }
+                                composable(NavigationBarItems.Person.route) {
+                                    ProfileScreen(onSignOut = signOutAction)                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
-}
 
+    // Lógica de Sign Out
+    fun signOut() {
+        // Use a instância injetada do Firebase Auth
+        firebaseAuth.signOut()
 
-@Composable
-fun MainScreen() {
-
-    val mainAppNavController = rememberNavController()
-
-    Scaffold(
-        bottomBar = {
-            BottomBarComponent(navController = mainAppNavController)
-        },
-
-        ) { paddingValues ->
-        // O NavHost é o contentor que renderiza a tela atual
-        NavHost(
-            navController = mainAppNavController,
-            startDestination = NavigationBarItems.House.route,
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable(NavigationBarItems.House.route) {
-                HomeScreen()
-            }
-            composable(NavigationBarItems.Local.route) {
-                EcoScreen()
-            }
-            composable(NavigationBarItems.Trophy.route) {
-                EcoTasksScreen()
-            }
-            composable(NavigationBarItems.Community.route) {
-                CommunityScreen()
-            }
-            composable(NavigationBarItems.Person.route) {
-                ProfileScreen()
+        lifecycleScope.launch {
+            try {
+                val clearRequest = ClearCredentialStateRequest()
+                credentialManager.clearCredentialState(clearRequest)
+                Log.d(TAG, "Credenciais do usuário limpas.")
+            } catch (e: ClearCredentialException) {
+                Log.e(TAG, "Não foi possível limpar as credenciais: ${e.localizedMessage}")
             }
         }
     }
 }
-
+@Composable
+fun MainScreen(
+    mainAppNavController: NavHostController,
+    content: @Composable (paddingValues: PaddingValues) -> Unit)
+{
+    Scaffold(
+        bottomBar = {
+            BottomBarComponent(navController = mainAppNavController)
+        },
+    ) { paddingValues -> // paddingValues é o da BottomBar
+        DrawerContainer(
+            showTopBar = true,
+            title = "App Greenmind",
+            outerPadding = paddingValues
+        ) { combinedPadding ->
+            content(combinedPadding)
+        }
+    }
+}
 @Serializable
 object Login
 @Serializable
 object Register
 @Serializable
 object Presentation
-// Rota que leva ao MainScreen (Scaffold + bottomBar)
 @Serializable
 object MainAppGraph

@@ -11,22 +11,20 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SustentabilityBannerDao {
 
-    // --- Inserção da info do dia ---
+    // Inserção da info do dia
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBanner(banner: SustentabilityBanner)
 
-    // --- Atualização conforme o tempo ---
+    // Atualização conforme o tempo
     @Update
     suspend fun updateBanner(banner: SustentabilityBanner)
 
-    // --- Remoção de banners para maior conexão à realidade ---
+    // Remoção de banners
     @Delete
     suspend fun deleteBanner(banner: SustentabilityBanner)
 
-    // --- Funções Adicionais Úteis (Leitura) ---
     @Query("SELECT * FROM sustentabilityBanner WHERE statusBanner = 1 LIMIT 1")
     fun getActiveBanner(): Flow<SustentabilityBanner?>
-
     @Query("SELECT * FROM sustentabilityBanner WHERE id = :bannerId")
     fun getBannerById(bannerId: Int): Flow<SustentabilityBanner?>
 }

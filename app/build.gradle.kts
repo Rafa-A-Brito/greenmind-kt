@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
     alias(libs.plugins.kotlin.serialization)
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -61,6 +62,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.play.services.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,7 +91,10 @@ dependencies {
     // Testing Database
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
-    
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+
     // RecylerView
     implementation(libs.androidx.recyclerview)
 
@@ -114,10 +119,49 @@ dependencies {
     // Lifecycle Compose
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Import the Firebase BoM
+    // Import the BoM for the Firebase platform
     implementation(platform(libs.firebase.bom))
 
-    // When using the BoM, don't specify versions in Firebase dependencies
-    implementation(libs.firebase.analytics)
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation(libs.firebase.auth)
 
+    // Also add the dependencies for the Credential Manager libraries and specify their versions
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // OSM Android
+    implementation(libs.osmdroid.android)
+
+    // GSON Google
+    implementation(libs.gson)
+
+    // GMS Play Services
+    implementation(libs.play.services.location)
+
+    // Encrypted password (BCrypt)
+    implementation(libs.jbcrypt)
+    implementation(libs.facebook.login)
+
+    // Hilt core
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    // Hilt para Compose/ViewModel
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Config Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // Coroutines adapter
+    implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+
+    // GMS Compose e Services
+    implementation("com.google.maps.android:maps-compose:3.0.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    // Logging interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }

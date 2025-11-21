@@ -20,11 +20,10 @@ interface TasksProgressDao {
     suspend fun updateProgress(progress: TasksProgressEntity)
 
     // Busca o progresso de uma tarefa específica para um usuário.
-
     @Query("SELECT * FROM tasks_progress WHERE userId = :userId AND missionId = :missionId LIMIT 1")
-    fun getProgressByMission(userId: String, missionId: String): Flow<TasksProgressEntity?>
+    fun getProgressByMission(userId: Int, missionId: Int): Flow<TasksProgressEntity?>
 
     // Busca todas as tarefas que estão em um determinado status para um usuário
     @Query("SELECT * FROM tasks_progress WHERE userId = :userId AND missionStatus = :status ORDER BY lastUpdated DESC")
-    fun getTasksByStatus(userId: String, status: String): Flow<List<TasksProgressEntity>>
+    fun getTasksByStatus(userId: Int, status: String): Flow<List<TasksProgressEntity>>
 }

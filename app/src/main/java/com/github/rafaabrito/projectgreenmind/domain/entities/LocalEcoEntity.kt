@@ -14,6 +14,8 @@ data class LocalEcoEntity (
     @ColumnInfo(name = "number") val numero: String,
     @ColumnInfo(name = "neighborhood") val neighborhood: String,
     @ColumnInfo(name = "city") val city: String,
-    @ColumnInfo(name = "cep") val cep: String
+    @ColumnInfo(name = "cep") val cep: String,
+    @ColumnInfo(name = "distance") val distance: String,
+    @ColumnInfo(name = "recyclableTypes") val recyclableTypes: List<String>
 
 )

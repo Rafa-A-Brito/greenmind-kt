@@ -61,7 +61,6 @@ fun CommunityScreen() {
                 .fillMaxSize()
                 .padding(horizontal = 15.dp)
         ) {
-            TopBarComponent()
             Spacer(modifier = Modifier.height(16.dp))
             CommunityTopSection()
             Spacer(modifier = Modifier.height(16.dp))
