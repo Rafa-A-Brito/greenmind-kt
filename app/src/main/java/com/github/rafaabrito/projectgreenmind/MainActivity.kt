@@ -1,17 +1,23 @@
 package com.github.rafaabrito.projectgreenmind
 
-import android.content.Intent
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
@@ -22,9 +28,6 @@ import com.github.rafaabrito.projectgreenmind.ui.components.NavigationBarItems
 import com.github.rafaabrito.projectgreenmind.ui.screens.*
 import com.github.rafaabrito.projectgreenmind.ui.theme.ProjectGreenMindTheme
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.MainViewModel
-
-// Imports para Credential Manager e Firebase
-import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.exceptions.ClearCredentialException
@@ -173,17 +176,34 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     mainAppNavController: NavHostController,
-    content: @Composable (paddingValues: PaddingValues) -> Unit)
-{
+    content: @Composable (paddingValues: PaddingValues) -> Unit
+) {
+    // Estado para controlar visibilidade da BottomBar
+    var isDrawerOpen by remember { mutableStateOf(false) }
+
     Scaffold(
+        modifier = Modifier.padding(12.dp),
         bottomBar = {
-            BottomBarComponent(navController = mainAppNavController)
-        },
-    ) { paddingValues -> // paddingValues é o da BottomBar
+            AnimatedVisibility(
+                visible = !isDrawerOpen,
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight }
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight }
+                )
+            ) {
+                BottomBarComponent(navController = mainAppNavController)
+            }
+        }
+    ) { paddingValues ->
         DrawerContainer(
             showTopBar = true,
             title = "App Greenmind",
-            outerPadding = paddingValues
+            outerPadding = paddingValues,
+            onDrawerStateChange = { isOpen ->
+                isDrawerOpen = isOpen
+            }
         ) { combinedPadding ->
             content(combinedPadding)
         }

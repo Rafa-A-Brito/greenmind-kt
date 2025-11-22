@@ -67,6 +67,8 @@ import kotlinx.coroutines.CancellationException
         onNavigateToRegister: () -> Unit,
     ) {
     val context = LocalContext.current
+    val activity = context as? androidx.activity.ComponentActivity
+
     val credentialManager = remember(context) { CredentialManager.create(context) }
 
     val loginState by viewModel.loginState.collectAsState()
@@ -98,23 +100,53 @@ import kotlinx.coroutines.CancellationException
     LaunchedEffect(loginState) {
         if (loginState is LoginViewModel.LoginState.AwaitingSocialAuth) {
             val request = (loginState as LoginViewModel.LoginState.AwaitingSocialAuth).request
+
+            // ✅ Verificar se temos uma Activity válida
+            if (activity == null) {
+                Toast.makeText(context, "Erro: Contexto inválido para login social", Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+                return@LaunchedEffect
+            }
+
             try {
-                // Inicia o fluxo do Credential Manager com a requisição do Google ID Token
+                println("🔍 Iniciando getCredential com Activity: ${activity.javaClass.simpleName}")
+
+                // ✅ USAR ACTIVITY em vez de context
                 val result = credentialManager.getCredential(
-                    context = context,
+                    context = activity, // ✅ CORREÇÃO PRINCIPAL
                     request = request
                 )
 
-                // Passa o resultado para o ViewModel processar o ID Token
+                println("✅ Credencial obtida: ${result.credential.type}")
                 viewModel.handleGoogleSignInCredential(result.credential)
 
-            } catch (e: Exception) {
-                if (e is CancellationException) {
-                    // Ignora, o usuário cancelou.
-                } else if (e is GetCredentialException) {
-                    // Loga e mostra um erro genérico na tela.
-                    Toast.makeText(context, "Falha no login social. Tente novamente.", Toast.LENGTH_LONG).show()
+            } catch (e: GetCredentialException) {
+                println("❌ GetCredentialException: ${e.type} - ${e.message}")
+                e.printStackTrace()
+
+                // ✅ Tratamento específico de erros
+                val errorMessage = when (e) {
+                    is androidx.credentials.exceptions.GetCredentialCancellationException -> {
+                        "Login cancelado"
+                    }
+                    is androidx.credentials.exceptions.NoCredentialException -> {
+                        "Nenhuma conta Google encontrada. Adicione uma conta nas configurações do dispositivo."
+                    }
+                    else -> {
+                        "Falha no login social: ${e.message}"
+                    }
                 }
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+
+            } catch (e: CancellationException) {
+                println("ℹ️ Login cancelado pelo usuário")
+                viewModel.resetState()
+
+            } catch (e: Exception) {
+                println("❌ Erro inesperado: ${e.message}")
+                e.printStackTrace()
+                Toast.makeText(context, "Erro inesperado: ${e.message}", Toast.LENGTH_LONG).show()
                 viewModel.resetState()
             }
         }
@@ -193,9 +225,9 @@ private fun PortraitLoginScreen(
             )
         }
 
-        Spacer(modifier = Modifier.weight(0.8f))
+        Spacer(modifier = Modifier.height(8.dp))
         CreateAccount(onNavigateToRegister = onNavigateToRegister)
-        Spacer(modifier = Modifier.weight(0.3f))
+        Spacer(modifier = Modifier.height(15.dp))
     }
 }
 @Composable

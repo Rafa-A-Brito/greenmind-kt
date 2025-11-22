@@ -1,6 +1,7 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,7 +50,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -76,9 +76,18 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.config.Configuration
 import android.content.Intent
-import android.net.Uri
+import android.widget.Toast
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.input.ImeAction
 import androidx.core.net.toUri
+import com.github.rafaabrito.projectgreenmind.domain.utils.rememberLocationPermissionState
+import kotlinx.coroutines.delay
 
 private val PermittedMaterials = listOf(
     "Entulhos (Concretos, tijolos, pisos) - Máx. 1m³/dia",
@@ -104,25 +113,68 @@ private const val ECOPONTO_URL = "https://www.guarulhos.sp.gov.br/ecoponto"
 fun EcoScreen(
     viewModel: EcoViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     // Estados do ViewModel
     val filteredEcoPoints by viewModel.filteredEcoPoints.collectAsState()
     val searchTerm by viewModel.searchTerm.collectAsState()
     val ecoPoints by viewModel.ecoPoints.collectAsState()
     val userLocation by viewModel.userLocation.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val selectedEcoPoint by viewModel.selectedEcoPoint.collectAsState()
+    val showNavigationDialog by viewModel.showNavigationDialog.collectAsState()
 
+    val locationPermissionState = rememberLocationPermissionState(
+        onPermissionGranted = {
+            viewModel.fetchUserLocation()
+        },
+        onPermissionDenied = {
+            Toast.makeText(
+                context,
+                "Permissão de localização negada. Mostrando apenas ecopontos de Guarulhos.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    )
+    LaunchedEffect(Unit) {
+        if (!locationPermissionState.hasPermission) {
+            locationPermissionState.requestPermission()
+        } else {
+            viewModel.fetchUserLocation()
+        }
+    }
     // Estados Locais
     var isMapExpanded by remember { mutableStateOf(false) }
     var showAddressDialog by remember { mutableStateOf(false) }
-    // Novos estados para os Dialogs de Material
     var showPermittedDialog by remember { mutableStateOf(false) }
     var showForbiddenDialog by remember { mutableStateOf(false) }
 
-    val mapHeight by animateDpAsState(
-        targetValue = if (isMapExpanded) 0.dp else 300.dp, // 300dp é a altura normal
-        label = "MapHeightAnimation"
-    )
+    val mapHeight = 300.dp
 
+    showNavigationDialog?.let { ecoPoint ->
+        NavigationDialog(
+            ecoPoint = ecoPoint,
+            userLocation = userLocation,
+            onDismiss = { viewModel.dismissNavigationDialog() },
+            onNavigate = { destination ->
+                val gmmIntentUri =
+                    "google.navigation:q=${destination.lat},${destination.long}&mode=d".toUri()
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+
+                if (mapIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(mapIntent)
+                } else {
+                    // Fallback para navegador
+                    val browserIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        "https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.long}".toUri()
+                    )
+                    context.startActivity(browserIntent)
+                }
+                viewModel.dismissNavigationDialog()
+            }
+        )
+    }
 
     if (showAddressDialog) {
         val locationData = userLocation
@@ -191,22 +243,42 @@ fun EcoScreen(
             viewModel = viewModel,
             userLocation = userLocation,
             ecoPoints = ecoPoints,
+            selectedEcoPoint = selectedEcoPoint,
             isLoading = isLoading,
             mapHeight = mapHeight,
-            onMapToggle = { isMapExpanded = it },
+            isMapExpanded = isMapExpanded,
+            onMapToggle = { isMapExpanded = true },
             onUserLocationClick = { showAddressDialog = true },
+            onEcoPointMarkerClick = { ecoPoint ->
+                viewModel.showNavigationDialog(ecoPoint)
+            },
             onPermittedClick = { showPermittedDialog = true },
             onForbiddenClick = { showForbiddenDialog = true }
         )
+
         Spacer(modifier = Modifier.height(20.dp))
 
-        EcoLocalBottomSection(ecoPoints = filteredEcoPoints)
-        if (isMapExpanded && userLocation != null) {
+        EcoLocalBottomSection(
+            ecoPoints = filteredEcoPoints,
+            onEcoPointClick = { ecoPoint ->
+                viewModel.selectEcoPoint(ecoPoint)
+                isMapExpanded = true
+            }
+        )
+
+        if (isMapExpanded) {
             ExpandedMapOverlay(
-                userLocation = userLocation!!,
+                userLocation = userLocation,
                 ecoPoints = ecoPoints,
-                onClose = { isMapExpanded = false },
-                onUserLocationClick = { showAddressDialog = true }
+                selectedEcoPoint = selectedEcoPoint,
+                onClose = {
+                    isMapExpanded = false
+                    viewModel.clearSelectedEcoPoint()
+                },
+                onUserLocationClick = { showAddressDialog = true },
+                onEcoPointMarkerClick = { ecoPoint ->
+                    viewModel.showNavigationDialog(ecoPoint)
+                }
             )
         }
     }
@@ -280,10 +352,12 @@ fun MaterialInfoDialog(
 
 @Composable
 fun ExpandedMapOverlay(
-    userLocation: UserLocation,
+    userLocation: UserLocation?,
     ecoPoints: List<LocalEcoEntity>,
     onClose: () -> Unit,
-    onUserLocationClick: () -> Unit
+    selectedEcoPoint: LocalEcoEntity?,
+    onUserLocationClick: () -> Unit,
+    onEcoPointMarkerClick: (LocalEcoEntity) -> Unit
 ) {
 
     Box(
@@ -294,9 +368,11 @@ fun ExpandedMapOverlay(
         OsmMapView(
             userLocation = userLocation,
             ecoPoints = ecoPoints,
+            selectedEcoPoint = selectedEcoPoint,
             onUserLocationClick = onUserLocationClick,
-            modifier = Modifier.fillMaxSize(),
-            onMapClick =  onClose
+            onEcoPointMarkerClick = onEcoPointMarkerClick,
+            onMapClick = onClose,
+            modifier = Modifier.fillMaxSize()
         )
 
         Icon(
@@ -320,14 +396,20 @@ fun EcoLocalTopSection(
     viewModel: EcoViewModel,
     userLocation: UserLocation?,
     ecoPoints: List<LocalEcoEntity>,
+    selectedEcoPoint: LocalEcoEntity?,
     isLoading: Boolean,
     mapHeight: Dp,
+    isMapExpanded: Boolean,
     onMapToggle: (Boolean) -> Unit,
     onUserLocationClick: () -> Unit,
+    onEcoPointMarkerClick: (LocalEcoEntity) -> Unit,
     onPermittedClick: () -> Unit,
     onForbiddenClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val searchTerm by viewModel.searchTerm.collectAsState()
+    val filteredCount by viewModel.filteredEcoPoints.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -369,13 +451,29 @@ fun EcoLocalTopSection(
         // Search bar
         OutlinedTextField(
             value = searchTerm,
-            onValueChange = viewModel::updateSearchTerm,
+            onValueChange = { newValue ->
+                viewModel.updateSearchTerm(newValue)
+
+                // ✅ Mostrar toast com resultado do filtro
+                if (newValue.isNotBlank()) {
+                    val count = filteredCount.size
+                    Toast.makeText(
+                        context,
+                        if (count > 0) "Encontrados $count ecoponto(s)" else "Nenhum ecoponto encontrado",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(MinimumGray),
-            placeholder = { Text("Filtrar ecopontos...", color = Color.LightGray) },
+                .height(56.dp), // ✅ Altura fixa
+            placeholder = {
+                Text(
+                    "Filtrar ecopontos...",
+                    color = Color.LightGray,
+                    maxLines = 1 // ✅ Placeholder em 1 linha
+                )
+            },
             leadingIcon = {
                 Icon(
                     Icons.Default.Search,
@@ -384,11 +482,22 @@ fun EcoLocalTopSection(
                 )
             },
             trailingIcon = {
-                Icon(
-                    Icons.Default.FilterList,
-                    contentDescription = "Filtro",
-                    tint = Color.White
-                )
+                if (searchTerm.isNotEmpty()) {
+                    // ✅ Botão para limpar
+                    IconButton(onClick = { viewModel.updateSearchTerm("") }) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Limpar",
+                            tint = Color.White
+                        )
+                    }
+                } else {
+                    Icon(
+                        Icons.Default.FilterList,
+                        contentDescription = "Filtro",
+                        tint = Color.White
+                    )
+                }
             },
             shape = RoundedCornerShape(28.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -396,9 +505,26 @@ fun EcoLocalTopSection(
                 unfocusedTextColor = Color.White,
                 cursorColor = Color.White,
                 focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent, 
+                unfocusedBorderColor = Color.Transparent,
                 focusedContainerColor = MinimumGray,
                 unfocusedContainerColor = MinimumGray
+            ),
+            singleLine = true,
+            maxLines = 1,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search // ✅ Botão de busca no teclado
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    // ✅ Ao pressionar Enter/Search, fecha o teclado
+                    // e mostra resultado
+                    val count = filteredCount.size
+                    Toast.makeText(
+                        context,
+                        if (count > 0) "Encontrados $count ecoponto(s)" else "Nenhum ecoponto encontrado",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             )
         )
 
@@ -421,7 +547,9 @@ fun EcoLocalTopSection(
                 OsmMapView(
                     userLocation = userLocation,
                     ecoPoints = ecoPoints,
+                    selectedEcoPoint = selectedEcoPoint,
                     onUserLocationClick = onUserLocationClick,
+                    onEcoPointMarkerClick = onEcoPointMarkerClick,
                     onMapClick = { onMapToggle(true) },
                     modifier = Modifier.fillMaxSize()
                 )
@@ -434,6 +562,17 @@ fun EcoLocalTopSection(
                 )
             }
         }
+
+        MapBoxWithLongPress(
+            userLocation = userLocation,
+            ecoPoints = ecoPoints,
+            selectedEcoPoint = selectedEcoPoint,
+            isLoading = isLoading,
+            mapHeight = mapHeight,
+            onMapToggle = onMapToggle,
+            onUserLocationClick = onUserLocationClick,
+            onEcoPointMarkerClick = onEcoPointMarkerClick
+        )
     }
 }
 
@@ -505,59 +644,75 @@ fun MaterialBox(
 fun OsmMapView(
     userLocation: UserLocation?,
     ecoPoints: List<LocalEcoEntity>,
+    selectedEcoPoint: LocalEcoEntity? = null,
     onUserLocationClick: () -> Unit,
+    onEcoPointMarkerClick: (LocalEcoEntity) -> Unit,
     onMapClick: () -> Unit,
     modifier: Modifier
 ) {
     val context = LocalContext.current
     val guarulhosCenter = GeoPoint(-23.4665, -46.5385)
 
-    val initialCenter = if (userLocation != null) {
-        GeoPoint(userLocation.latitude, userLocation.longitude)
-    } else {
-        guarulhosCenter
+    val initialCenter = when {
+        selectedEcoPoint != null -> GeoPoint(selectedEcoPoint.lat, selectedEcoPoint.long)
+        userLocation != null -> GeoPoint(userLocation.latitude, userLocation.longitude)
+        else -> guarulhosCenter
     }
 
+    val zoomLevel = if (selectedEcoPoint != null) 16.0 else 14.0
+
     Configuration.getInstance().load(context, context.getSharedPreferences("osmdroid", 0))
+
     AndroidView(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
-            .clip(RoundedCornerShape(12.dp)),
-        factory = {
-            MapView(it).apply {
+        modifier = modifier,
+        factory = { ctx ->
+            MapView(ctx).apply {
                 setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(true)
-                controller.setZoom(14.0)
+                controller.setZoom(zoomLevel)
                 controller.setCenter(initialCenter)
                 this.setOnClickListener {
                     onMapClick()
                 }
+                setBuiltInZoomControls(false)
+                setMultiTouchControls(true)
             }
         },
         update = { mapView ->
             mapView.overlays.clear()
 
-            mapView.controller.setCenter(initialCenter)
+            mapView.controller.animateTo(initialCenter)
+            mapView.controller.setZoom(zoomLevel)
 
-            // Adicionar o marcador do usuário SOMENTE se a localização estiver disponível
+            // ✅ Marcador do usuário
             if (userLocation != null) {
                 val userGeoPoint = GeoPoint(userLocation.latitude, userLocation.longitude)
-
                 val userMarker = Marker(mapView)
                 userMarker.position = userGeoPoint
-                userMarker.icon =
-                    ResourcesCompat.getDrawable(context.resources, R.drawable.ic_local_person, null)
-                userMarker.title = "Sua Localização"
+                userMarker.icon = ResourcesCompat.getDrawable(
+                    context.resources,
+                    R.drawable.ic_local_person,
+                    null
+                )
+                userMarker.title = "📍 Sua Localização"
+                userMarker.snippet = buildString {
+                    append("${userLocation.street}")
+                    if (userLocation.numero != null) {
+                        append(", ${userLocation.numero}")
+                    }
+                    append("\n${userLocation.city}")
+                }
 
-                userMarker.setOnMarkerClickListener { marker, mapView ->
+                userMarker.setOnMarkerClickListener { marker, _ ->
+                    marker.showInfoWindow()
                     onUserLocationClick()
                     true
                 }
+
                 mapView.overlays.add(userMarker)
             }
 
-            // Adicionar marcadores dos Ecopontos
+            // Marcadores dos ecopontos
             ecoPoints.forEach { ecopoint ->
                 val ecoGeoPoint = GeoPoint(ecopoint.lat, ecopoint.long)
                 val ecoMarker = Marker(mapView)
@@ -567,8 +722,79 @@ fun OsmMapView(
                     R.drawable.ic_eco_location,
                     null
                 )
-                ecoMarker.title = ecopoint.localName
-                ecoMarker.subDescription = "${ecopoint.street}, ${ecopoint.city}"
+
+                ecoMarker.title = "♻️ ${ecopoint.localName}"
+                ecoMarker.snippet = buildString {
+                    append("📍 ${ecopoint.street}, ${ecopoint.numero}\n")
+                    append("🏙️ ${ecopoint.neighborhood} - ${ecopoint.city}\n")
+
+                    if (ecopoint.distance != "indisponível") {
+                        append("📏 Distância: ${ecopoint.distance}\n")
+                    }
+
+                    append("\n♻️ Aceita:\n")
+                    ecopoint.recyclableTypes.take(4).forEach {
+                        append("  • $it\n")
+                    }
+                    if (ecopoint.recyclableTypes.size > 4) {
+                        append("  ...e mais ${ecopoint.recyclableTypes.size - 4}")
+                    }
+                }
+
+                // ✅ Customizar a Info Window
+                ecoMarker.infoWindow = object : org.osmdroid.views.overlay.infowindow.InfoWindow(
+                    org.osmdroid.library.R.layout.bonuspack_bubble,
+                    mapView
+                ) {
+                    override fun onOpen(item: Any?) {
+                        // Quando a info window abre
+                        val marker = item as? Marker
+                        view.findViewById<android.widget.TextView>(
+                            org.osmdroid.library.R.id.bubble_title
+                        )?.text = marker?.title
+
+                        view.findViewById<android.widget.TextView>(
+                            org.osmdroid.library.R.id.bubble_description
+                        )?.text = marker?.snippet
+
+                        // ✅ Botão "Navegar" na info window
+                        view.findViewById<android.widget.Button>(
+                            org.osmdroid.library.R.id.bubble_moreinfo
+                        )?.apply {
+                            text = "Navegar"
+                            visibility = android.view.View.VISIBLE
+                            setOnClickListener {
+                                close()
+                                onEcoPointMarkerClick(ecopoint)
+                            }
+                        }
+                    }
+
+                    override fun onClose() {
+                        val defaultCenter = when {
+                            selectedEcoPoint != null -> GeoPoint(selectedEcoPoint.lat, selectedEcoPoint.long)
+                            userLocation != null -> GeoPoint(userLocation.latitude, userLocation.longitude)
+                            else -> GeoPoint(-23.4665, -46.5385) // Guarulhos
+                        }
+
+                        mapView.controller.animateTo(defaultCenter)
+                        mapView.controller.setZoom(14.0)
+                    }
+                }
+
+                // ✅ Ao clicar no marcador
+                ecoMarker.setOnMarkerClickListener { marker, _ ->
+                    // Mostra a info window nativa
+                    marker.showInfoWindow()
+
+                    // Após 1 segundo, abre o diálogo de navegação
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        onEcoPointMarkerClick(ecopoint)
+                    }, 1000)
+
+                    true
+                }
+
                 mapView.overlays.add(ecoMarker)
             }
 
@@ -576,9 +802,64 @@ fun OsmMapView(
         }
     )
 }
+@Composable
+fun NavigationDialog(
+    ecoPoint: LocalEcoEntity,
+    userLocation: UserLocation?,
+    onDismiss: () -> Unit,
+    onNavigate: (LocalEcoEntity) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Icons.Default.Navigation,
+                contentDescription = "Navegação",
+                tint = Color(0xFF5ED88B)
+            )
+        },
+        title = {
+            Text("Navegar até ${ecoPoint.localName}?")
+        },
+        text = {
+            Column {
+                Text("Deseja abrir o Google Maps para navegar até este local?")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "${ecoPoint.street}, ${ecoPoint.numero} - ${ecoPoint.city}",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+                if (userLocation != null && ecoPoint.distance != "indisponível") {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Distância: ${ecoPoint.distance}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF5ED88B)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onNavigate(ecoPoint) }) {
+                Text("Navegar", color = Color(0xFF5ED88B))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = Color.Gray)
+            }
+        }
+    )
+}
 
 @Composable
-fun EcoLocalBottomSection(ecoPoints: List<LocalEcoEntity>) {
+fun EcoLocalBottomSection(
+    ecoPoints: List<LocalEcoEntity>,
+    onEcoPointClick: (LocalEcoEntity) -> Unit // ✅ Adicionar callback
+
+) {
     Column(
         modifier = Modifier
             .background(DarkMutedGreen, RoundedCornerShape(10.dp))
@@ -594,19 +875,25 @@ fun EcoLocalBottomSection(ecoPoints: List<LocalEcoEntity>) {
             )
         } else {
             ecoPoints.forEach { ecopoint ->
-                EcoPointCard(ecopoint = ecopoint)
+                EcoPointCard(
+                    ecopoint = ecopoint,
+                    onClick = { onEcoPointClick(ecopoint) } // ✅ Passar callback
+                )
             }
         }
     }
 }
 
 @Composable
-fun EcoPointCard(ecopoint: LocalEcoEntity) {
+fun EcoPointCard(
+    ecopoint: LocalEcoEntity,
+    onClick: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Ação ao clicar no card */ }
+            .clickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier
@@ -662,6 +949,182 @@ fun EcoPointCard(ecopoint: LocalEcoEntity) {
                     color = DarkBrown
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun AddressDialog(
+    userLocation: UserLocation?,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("OK", color = Color(0xFF5ED88B))
+            }
+        },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.PersonPin,
+                    contentDescription = "Localização",
+                    tint = Color(0xFF5ED88B)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Sua Localização Atual")
+            }
+        },
+        text = {
+            if (userLocation != null) {
+                val street = userLocation.street ?: "Não disponível"
+                val numero = userLocation.numero ?: "S/N"
+                val city = userLocation.city ?: "Não disponível"
+
+                Column {
+                    Text(
+                        text = "Endereço:",
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = Inter,
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "$street, $numero",
+                        fontFamily = Inter,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Cidade:",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = city,
+                        fontFamily = Inter,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Coordenadas:",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "${String.format("%.6f", userLocation.latitude)}, ${String.format("%.6f", userLocation.longitude)}",
+                        fontSize = 14.sp,
+                        fontFamily = Inter,
+                        color = Color.Black,
+                    )
+                }
+            } else {
+                Text(
+                    fontFamily = Inter,
+                    text = "Localização não disponível. Verifique se concedeu permissão de localização.",
+                    color = Color.Gray
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun MapBoxWithLongPress(
+    userLocation: UserLocation?,
+    ecoPoints: List<LocalEcoEntity>,
+    selectedEcoPoint: LocalEcoEntity?,
+    isLoading: Boolean,
+    mapHeight: Dp,
+    onMapToggle: (Boolean) -> Unit,
+    onUserLocationClick: () -> Unit,
+    onEcoPointMarkerClick: (LocalEcoEntity) -> Unit
+) {
+    var isLongPressing by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(mapHeight)
+            .clip(RoundedCornerShape(12.dp))
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        // ✅ Long press detectado - expandir mapa
+                        isLongPressing = true
+                        onMapToggle(true)
+                    },
+                    onPress = {
+                        // ✅ Detecta quando o usuário começa a pressionar
+                        val press = try {
+                            awaitRelease()
+                        } catch (e: Exception) {
+                            false
+                        }
+                    }
+                )
+            }
+    ) {
+        if (userLocation != null || !isLoading) {
+            OsmMapView(
+                userLocation = userLocation,
+                ecoPoints = ecoPoints,
+                selectedEcoPoint = selectedEcoPoint,
+                onUserLocationClick = onUserLocationClick,
+                onEcoPointMarkerClick = onEcoPointMarkerClick,
+                onMapClick = { }, // Não expandir com tap simples
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // ✅ Indicador visual de long press
+            if (isLongPressing) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+
+                // Reset após abrir
+                LaunchedEffect(Unit) {
+                    delay(300)
+                    isLongPressing = false
+                }
+            }
+
+            // ✅ Hint visual para o usuário
+            Text(
+                text = "Pressione e segure para expandir",
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(8.dp)
+                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                color = Color.White,
+                fontSize = 12.sp,
+                fontFamily = Inter
+            )
+        } else if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        } else {
+            Text(
+                "Localização do usuário não disponível",
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
     }
 }

@@ -49,6 +49,9 @@ class LoginViewModel @Inject constructor(
                     val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                     val idToken = googleIdTokenCredential.idToken
 
+                    // ✅ Adicione log para debug
+                    println("🔑 ID Token obtido: ${idToken.take(20)}...")
+
                     when (val authResponse = authService.signInWithGoogleIdToken(idToken)) {
                         is AuthService.AuthResponse.Success -> {
                             val userEntity = userRepository.associateFirebaseUser(
@@ -59,22 +62,22 @@ class LoginViewModel @Inject constructor(
                             val userModel = userEntity.toDomainModel()
                             _loginState.value = LoginState.Success(userModel)
                         }
-
                         is AuthService.AuthResponse.Error -> {
-                            _loginState.value =
-                                LoginState.Error("Falha na autenticação social: ${authResponse.message}")
+                            // ✅ Log detalhado do erro
+                            println("❌ Erro auth: ${authResponse.message}")
+                            _loginState.value = LoginState.Error("Falha: ${authResponse.message}")
                         }
-
                         else -> {
-                            _loginState.value = LoginState.Error("Autenticação social falhou ou foi cancelada.")
+                            _loginState.value = LoginState.Error("Autenticação falhou ou foi cancelada.")
                         }
                     }
-
                 } else {
-                    _loginState.value = LoginState.Error("Credencial inválida ou tipo desconhecido.")
+                    _loginState.value = LoginState.Error("Credencial inválida: ${credential.type}")
                 }
             } catch (e: Exception) {
-                _loginState.value = LoginState.Error("Erro local ao finalizar o login: ${e.message}")
+                // ✅ Log da stack trace completa
+                e.printStackTrace()
+                _loginState.value = LoginState.Error("Erro: ${e.message}")
             }
         }
     }

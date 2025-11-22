@@ -61,6 +61,8 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
 ) {
     val context = LocalContext.current
+    val activity = context as? androidx.activity.ComponentActivity
+
     val registerState by viewModel.registerState.collectAsState()
 
     val credentialManager = remember(context) { CredentialManager.create(context) }
@@ -79,7 +81,7 @@ fun RegisterScreen(
 
     val scrollState = rememberScrollState() // Definido fora do Column
 
-    // Tratamento de Sucesso e Erro do Registro Local/Firebase
+    // Tratamento de Sucesso e Erro
     LaunchedEffect(registerState) {
         when (registerState) {
             is RegisterState.Success -> {
@@ -95,33 +97,60 @@ fun RegisterScreen(
         }
     }
 
-    // Tratamento do NOVO fluxo de Credential Manager
+    // ✅ CORREÇÃO: Verificar activity e usar no CredentialManager
     LaunchedEffect(registerState) {
         if (registerState is RegisterState.AwaitingSocialAuth) {
             val request = (registerState as RegisterState.AwaitingSocialAuth).request
+
+            // ✅ Verificar se temos uma Activity válida
+            if (activity == null) {
+                Toast.makeText(context, "Erro: Contexto inválido para registro social", Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+                return@LaunchedEffect
+            }
+
             try {
-                // Inicia o fluxo do Credential Manager com a requisição do Google ID Token
+                println("🔍 Iniciando getCredential com Activity: ${activity.javaClass.simpleName}")
+
+                // ✅ USAR ACTIVITY em vez de context
                 val result = credentialManager.getCredential(
-                    context = context,
+                    context = activity, // ✅ CORREÇÃO PRINCIPAL
                     request = request
                 )
 
-                // Passa o resultado para o ViewModel processar o ID Token
+                println("✅ Credencial obtida: ${result.credential.type}")
                 viewModel.handleGoogleSignInCredential(result.credential)
 
-            } catch (e: Exception) {
-                // Se o usuário cancelar ou houver erro (Ex: GetCredentialException)
-                if (e is CancellationException) {
-                    // Ignora, o usuário cancelou.
-                } else if (e is GetCredentialException) {
-                    // Loga e mostra um erro genérico na tela.
-                    Toast.makeText(context, "Falha no registro social. Tente novamente.", Toast.LENGTH_LONG).show()
+            } catch (e: GetCredentialException) {
+                println("❌ GetCredentialException: ${e.type} - ${e.message}")
+                e.printStackTrace()
+
+                val errorMessage = when (e) {
+                    is androidx.credentials.exceptions.GetCredentialCancellationException -> {
+                        "Registro cancelado"
+                    }
+                    is androidx.credentials.exceptions.NoCredentialException -> {
+                        "Nenhuma conta Google encontrada. Adicione uma conta nas configurações do dispositivo."
+                    }
+                    else -> {
+                        "Falha no registro social: ${e.message}"
+                    }
                 }
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+
+            } catch (e: CancellationException) {
+                println("ℹ️ Registro cancelado pelo usuário")
+                viewModel.resetState()
+
+            } catch (e: Exception) {
+                println("❌ Erro inesperado: ${e.message}")
+                e.printStackTrace()
+                Toast.makeText(context, "Erro inesperado: ${e.message}", Toast.LENGTH_LONG).show()
                 viewModel.resetState()
             }
         }
     }
-
     Surface {
         Column(
             modifier = Modifier
@@ -163,9 +192,9 @@ fun RegisterScreen(
                     enabled = !isEnabled
                 )
             }
-            Spacer(modifier = Modifier.weight(0.8f))
+            Spacer(modifier = Modifier.height(8.dp))
             BackToLogin(onNavigateToLogin = onNavigateToLogin)
-            Spacer(modifier = Modifier.weight(0.3f))
+            Spacer(modifier = Modifier.height(15.dp))
         }
     }
 }

@@ -4,7 +4,6 @@ import android.content.Context
 import android.location.Geocoder
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.rafaabrito.projectgreenmind.data.repository.LocalEcoRepository
@@ -27,7 +26,11 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.collections.emptyList
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 data class UserLocation(
     val latitude: Double,
@@ -42,30 +45,59 @@ data class AddressResult(
     val numero: String?,
     val city: String?
 )
+
 @HiltViewModel
 class EcoViewModel @Inject constructor(
     private val localEcoRepository: LocalEcoRepository,
     private val fusedLocationClient: FusedLocationProviderClient,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val TAG = "EcoViewModel"
 
-    // Estado da lista de ecopontos no Room
+    // Estados
     private val _ecoPoints = MutableStateFlow<List<LocalEcoEntity>>(emptyList())
     val ecoPoints: StateFlow<List<LocalEcoEntity>> = _ecoPoints
 
-    // Estado da localização atual do usuário
     private val _userLocation = MutableStateFlow<UserLocation?>(null)
     val userLocation: StateFlow<UserLocation?> = _userLocation
+
     private val _searchTerm = MutableStateFlow("")
     val searchTerm: StateFlow<String> = _searchTerm
-    // Estado de carregamento
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    // ✅ Novo: Ecoponto selecionado para ampliar no mapa
+    private val _selectedEcoPoint = MutableStateFlow<LocalEcoEntity?>(null)
+    val selectedEcoPoint: StateFlow<LocalEcoEntity?> = _selectedEcoPoint
+
+    // ✅ Novo: Controla se deve mostrar o diálogo de navegação
+    private val _showNavigationDialog = MutableStateFlow<LocalEcoEntity?>(null)
+    val showNavigationDialog: StateFlow<LocalEcoEntity?> = _showNavigationDialog
+
     fun updateSearchTerm(newTerm: String) {
         _searchTerm.value = newTerm
+    }
+
+    // ✅ Selecionar ecoponto para ampliar mapa
+    fun selectEcoPoint(ecoPoint: LocalEcoEntity) {
+        _selectedEcoPoint.value = ecoPoint
+    }
+
+    // ✅ Limpar seleção
+    fun clearSelectedEcoPoint() {
+        _selectedEcoPoint.value = null
+    }
+
+    // ✅ Mostrar diálogo de navegação
+    fun showNavigationDialog(ecoPoint: LocalEcoEntity) {
+        _showNavigationDialog.value = ecoPoint
+    }
+
+    // ✅ Fechar diálogo de navegação
+    fun dismissNavigationDialog() {
+        _showNavigationDialog.value = null
     }
 
     val filteredEcoPoints: StateFlow<List<LocalEcoEntity>> = combine(
@@ -75,8 +107,13 @@ class EcoViewModel @Inject constructor(
         if (term.isBlank()) {
             points
         } else {
-            points.filter {
-                it.localName.contains(term, ignoreCase = true)
+            points.filter { ecopoint ->
+                // ✅ Busca em múltiplos campos
+                ecopoint.localName.contains(term, ignoreCase = true) ||
+                        ecopoint.street.contains(term, ignoreCase = true) ||
+                        ecopoint.neighborhood.contains(term, ignoreCase = true) ||
+                        ecopoint.city.contains(term, ignoreCase = true) ||
+                        ecopoint.cep.contains(term, ignoreCase = true)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -88,66 +125,23 @@ class EcoViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
-        fetchUserLocation()
         insertMockData()
     }
 
-    private fun getUserLocation() {
+    // ✅ Função pública para buscar localização (chamada após permissão concedida)
+    fun fetchUserLocation() {
         _isLoading.value = true
-
-        // CUIDADO: É necessário verificar permissões ANTES de chamar esta função
-        // No escopo deste exemplo, assumimos que as permissões foram concedidas.
-        if (false /* Lógica real de checagem de permissão: ContextCompat.checkSelfPermission(...) != PackageManager.PERMISSION_GRANTED */) {
-            _isLoading.value = false
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                val location = fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_HIGH_ACCURACY,
-                    CancellationTokenSource().token
-                ).await()
-
-                if (location != null) {
-                    val addressResult = getStreetAndCityFromCoords(location.latitude, location.longitude)
-
-                    _userLocation.value = UserLocation(
-                        latitude = location.latitude,
-                        longitude = location.longitude,
-                        street = addressResult.street ?: "Rua Indisponível",
-                        numero = addressResult.numero,
-                        city = addressResult.city ?: "Cidade Indisponível"
-                    )
-                }
-            } catch (e: SecurityException) {
-                Log.e(TAG, "Permissão de Localização negada: ${e.message}")
-            } catch (e: Exception) {
-                Log.e(TAG, "Erro ao obter localização: ${e.message}")
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-    private fun showToast(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-    }
-    private fun fetchUserLocation() {
-        _isLoading.value = true
-        // NOTA: A verificação de permissão deve ser feita antes.
 
         viewModelScope.launch {
             try {
                 val cancellationToken = CancellationTokenSource()
 
-                // 1. Solicita a localização atual (Lat/Long)
                 val location = fusedLocationClient.getCurrentLocation(
                     Priority.PRIORITY_HIGH_ACCURACY,
                     cancellationToken.token
                 ).await()
 
                 if (location != null) {
-                    // 2. Chama a função de Geocoding para obter o endereço
                     val addressResult = getStreetAndCityFromCoords(location.latitude, location.longitude)
 
                     _userLocation.value = UserLocation(
@@ -157,42 +151,62 @@ class EcoViewModel @Inject constructor(
                         numero = addressResult.numero,
                         city = addressResult.city ?: "Cidade Indisponível"
                     )
+
+                    // ✅ Calcular distâncias após obter localização
+                    calculateDistances()
                 } else {
-                    // Fallback para localização e endereço padrão
-                    _userLocation.value = UserLocation(
-                        latitude = -23.5505,
-                        longitude = -46.6333,
-                        street = "Localização padrão (Av. Paulista)",
-                        numero = "1374",
-                        city = "São Paulo"
-                    )
-                    showToast("Localização falhou. Usando localização padrão.")
+                    setDefaultLocation("Localização falhou. Usando localização padrão.")
                 }
             } catch (e: SecurityException) {
-                // Fallback para permissão negada
-                _userLocation.value = UserLocation(
-                    latitude = -23.5505,
-                    longitude = -46.6333,
-                    street = "Permissão negada (Av. Paulista)",
-                    numero = "1374",
-                    city = "São Paulo"
-                )
-                showToast("Permissão de localização negada. Usando localização padrão.")
+                Log.e(TAG, "Permissão negada: ${e.message}")
+                setDefaultLocation("Permissão de localização negada.")
             } catch (e: Exception) {
-                // Tratar outros erros de localização
-                _userLocation.value = UserLocation(
-                    latitude = -23.5505,
-                    longitude = -46.6333,
-                    street = "Erro ao buscar (Av. Paulista)",
-                    numero = "1374",
-                    city = "São Paulo"
-                )
-                showToast("Erro ao obter localização: ${e.message}. Usando localização padrão.")
+                Log.e(TAG, "Erro: ${e.message}")
+                setDefaultLocation("Erro ao obter localização: ${e.message}")
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
+    // ✅ Função auxiliar para localização padrão (Guarulhos)
+    private fun setDefaultLocation(message: String) {
+        _userLocation.value = null // Não define localização do usuário
+        showToast(message)
+    }
+
+    // ✅ Calcular distância entre usuário e ecopontos
+    private fun calculateDistances() {
+        val userLoc = _userLocation.value ?: return
+
+        viewModelScope.launch {
+            val updatedPoints = _ecoPoints.value.map { ecoPoint ->
+                val distance = calculateDistance(
+                    userLoc.latitude, userLoc.longitude,
+                    ecoPoint.lat, ecoPoint.long
+                )
+                ecoPoint.copy(distance = String.format("%.2f km", distance))
+            }
+            _ecoPoints.value = updatedPoints
+        }
+    }
+
+    // ✅ Fórmula de Haversine para calcular distância
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val earthRadius = 6371.0 // km
+
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+
+        val a = sin(dLat / 2).pow(2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2).pow(2)
+
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        return earthRadius * c
+    }
+
     private suspend fun getStreetAndCityFromCoords(lat: Double, lon: Double): AddressResult = withContext(
         Dispatchers.IO) {
         if (!Geocoder.isPresent()) {
@@ -201,7 +215,6 @@ class EcoViewModel @Inject constructor(
         }
 
         try {
-            // Usando a localização padrão do sistema
             val geocoder = Geocoder(context, Locale.getDefault())
 
             @Suppress("DEPRECATION")
@@ -219,16 +232,17 @@ class EcoViewModel @Inject constructor(
                 AddressResult("Endereço não encontrado", null, null)
             }
         } catch (e: IOException) {
-            // Captura erros de rede ou serviço
             Log.e(TAG, "Falha no Geocoder (IO): ${e.message}")
             AddressResult("Erro de rede/serviço ao buscar endereço", null, null)
         } catch (e: Exception) {
-            // Captura outros erros
             Log.e(TAG, "Erro inesperado no Geocoder: ${e.message}")
             AddressResult("Erro ao processar endereço", null, null)
         }
     }
 
+    private fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
 
     private fun insertMockData() {
         _isLoading.value = true

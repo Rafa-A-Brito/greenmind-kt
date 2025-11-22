@@ -29,7 +29,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Co
 class FirebaseAuthServiceImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val credentialManager: CredentialManager,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : AuthService {
     private fun mapFirebaseUserToAuthResponse(user: FirebaseUser): AuthService.AuthResponse.Success {
         return AuthService.AuthResponse.Success(
@@ -93,33 +93,61 @@ class FirebaseAuthServiceImpl @Inject constructor(
         return try {
             val serverClientId = context.getString(R.string.default_web_client_id)
 
-            // Instanciar a solicitação de login do Google (GetGoogleIdOption)
+            println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            println("🔍 CRIANDO GOOGLE ID REQUEST")
+            println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            println("📦 Package: ${context.packageName}")
+            println("🔑 Web Client ID: ${serverClientId.take(50)}...")
+            println("🔑 Termina com .apps.googleusercontent.com: ${serverClientId.endsWith(".apps.googleusercontent.com")}")
+            println("🔑 Tamanho: ${serverClientId.length} caracteres")
+
+            if (serverClientId.length < 60 || !serverClientId.endsWith(".apps.googleusercontent.com")) {
+                println("❌ ERRO: Web Client ID parece estar incorreto!")
+                return null
+            }
+
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setServerClientId(serverClientId)
-                .setFilterByAuthorizedAccounts(true)
+                .setFilterByAuthorizedAccounts(false)
+                .setAutoSelectEnabled(false)
                 .build()
 
-            // Criar a solicitação do Gerenciador de credenciais (GetCredentialRequest)
-            return GetCredentialRequest.Builder()
+            println("✅ GoogleIdOption criado")
+
+            val request = GetCredentialRequest.Builder()
                 .addCredentialOption(googleIdOption)
                 .build()
+
+            println("✅ GetCredentialRequest criado com sucesso")
+            println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+            return request
+
         } catch (e: Exception) {
+            println("❌ ERRO ao criar request:")
+            println("   Tipo: ${e.javaClass.simpleName}")
+            println("   Mensagem: ${e.message}")
             e.printStackTrace()
             null
         }
     }
+
     override suspend fun signInWithGoogleIdToken(idToken: String): AuthService.AuthResponse {
         return try {
+            println("🔐 Iniciando autenticação com idToken...")
             val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
             val result = firebaseAuth.signInWithCredential(firebaseCredential).await()
             val user = result.user
 
             if (user != null) {
+                println("✅ Usuário autenticado: ${user.email}")
                 mapFirebaseUserToAuthResponse(user)
             } else {
+                println("❌ User null após autenticação")
                 AuthService.AuthResponse.Error("Falha ao obter usuário após autenticação social.")
             }
         } catch(e: Exception) {
+            println("❌ Exceção no signInWithGoogleIdToken: ${e.message}")
             e.printStackTrace()
             mapFirebaseExceptionToError(e)
         }

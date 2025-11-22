@@ -10,7 +10,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
-public class UserRepository @Inject constructor(
+class UserRepository @Inject constructor(
     private val userDao: UserDao, 
     private val credentialsDao: CredentialsDao,
     private val passwordHasher: PasswordHasher

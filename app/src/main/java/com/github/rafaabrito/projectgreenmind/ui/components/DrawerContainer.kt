@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,9 +34,14 @@ fun DrawerContainer(
     showTopBar: Boolean = true,
     title: String = "",
     outerPadding: PaddingValues = PaddingValues(0.dp),
+    onDrawerStateChange: (Boolean) -> Unit = {}, // ✅ Novo parâmetro
     content: @Composable (innerPadding: PaddingValues) -> Unit
 ) {
     var drawerState by remember { mutableStateOf(CustomDrawerState.Closed) }
+
+    LaunchedEffect(drawerState) {
+        onDrawerStateChange(drawerState.isOpened())
+    }
 
     // Animações iguais à sua implementação original
     val configuration = LocalConfiguration.current
@@ -49,17 +55,16 @@ fun DrawerContainer(
 
     val animatedOffset by animateDpAsState(
         targetValue = if (drawerState.isOpened()) offsetValue else 0.dp,
-        label = ""
+        label = "drawer_offset"
     )
 
     val animatedScale by animateFloatAsState(
         targetValue = if (drawerState.isOpened()) 0.9f else 1f,
-        label = ""
+        label = "drawer_scale"
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (drawerState.isOpened()) {
-            // Drawer real
             CustomDrawer(
                 selectedNavigationItem = NavigationItem.Logout,
                 onNavigationItemClick = {
@@ -78,17 +83,12 @@ fun DrawerContainer(
                 .scale(animatedScale)
                 .fillMaxSize()
         ) {
-            // 1. Sua TopBar Customizada (com o Menu Icon funcional)
             if (showTopBar) {
-                // Você precisaria adaptar TopBarComponent para aceitar o onClick do Drawer
                 TopBarComponent(
                     onMenuClick = { drawerState = drawerState.opposite() }
                 )
             }
 
-            // 2. O Conteúdo principal (NavHost)
-            // Agora, o padding precisa ser calculado manualmente ou passado do MainScreen
-            // Vamos usar apenas o outerPadding (BottomBar padding)
             val combinedPadding = PaddingValues(
                 bottom = outerPadding.calculateBottomPadding(),
                 start = outerPadding.calculateStartPadding(LocalLayoutDirection.current),
@@ -97,7 +97,7 @@ fun DrawerContainer(
 
             Box(
                 modifier = Modifier
-                    .weight(1f) // Ocupa o restante do espaço vertical
+                    .weight(1f)
                     .fillMaxWidth()
             ) {
                 content(combinedPadding)
