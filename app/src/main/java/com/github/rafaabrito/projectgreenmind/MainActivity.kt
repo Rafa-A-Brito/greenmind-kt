@@ -1,5 +1,6 @@
 package com.github.rafaabrito.projectgreenmind
 
+import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,15 +8,13 @@ import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -31,7 +30,10 @@ import com.github.rafaabrito.projectgreenmind.ui.viewModel.MainViewModel
 import androidx.credentials.CredentialManager
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.exceptions.ClearCredentialException
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.github.rafaabrito.projectgreenmind.domain.utils.permissions.rememberAllPermissionsState
+import com.github.rafaabrito.projectgreenmind.domain.utils.network.rememberNetworkState
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -39,117 +41,209 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import com.github.rafaabrito.projectgreenmind.domain.utils.auth.AuthService
 import com.github.rafaabrito.projectgreenmind.ui.components.DrawerContainer
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 @Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private val credentialManager by lazy { CredentialManager.create(this) }
-    private val viewModel by viewModels<MainViewModel>()
+    private val TAG = "MainActivity"
 
-    private val TAG = "AuthActivity"
-
-    // Membros da classe
     @Inject
     lateinit var firebaseAuth: FirebaseAuth
     @Inject
     lateinit var authService: AuthService
 
-    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
-
-        super.onCreate(savedInstanceState) // Posição mais segura
+        super.onCreate(savedInstanceState)
 
         splashScreen.apply {
             setKeepOnScreenCondition {
-                !viewModel.isReady.value
+                !mainViewModel.isReady.value
             }
         }
+
         setContent {
             ProjectGreenMindTheme {
-                val rootNavController = rememberNavController()
-                val context = LocalContext.current
-                NavHost(
-                    navController = rootNavController,
-                    startDestination = Presentation
-                ) {
-                    // Rota da Apresentação
-                    composable<Presentation> {
-                        PresentationScreen(
-                            onNavigateToHome = {
-                                rootNavController.navigate(Login) {
-                                    popUpTo<Presentation> { inclusive = true }
-                                }
-                            },
-                            onExit = {
-                                (context as ComponentActivity).finish()
-                            }
-                        )
+                val networkState = rememberNetworkState()
+                var wasDisconnected by remember { mutableStateOf(false) }
+                var permissionsRequested by remember { mutableStateOf(false) }
+                val isReady by mainViewModel.isReady.collectAsStateWithLifecycle()
+
+                val permissionsManager = rememberAllPermissionsState(
+                    onAllPermissionsGranted = {
+                        Log.d(TAG, "✅ Todas as permissões concedidas")
+                    },
+                    onPermissionsDenied = {
+                        Log.w(TAG, "⚠️ Algumas permissões foram negadas")
                     }
+                )
 
-                    composable<Login> {
-                        LoginScreen(
-                            onLoginSuccess = { userId ->
-                                rootNavController.navigate(MainAppGraph) {
-                                    popUpTo(Login) { inclusive = true }
-                                }
-                            },
-                            onNavigateToRegister = {
-                                rootNavController.navigate(Register)
-                            }
-                        )
+                LaunchedEffect(isReady) {
+                    if (isReady && !permissionsRequested) {
+                        if (!permissionsManager.permissionsState.allPermissionsGranted) {
+                            // delay(300)
+                            permissionsManager.requestAllPermissions()
+                            permissionsRequested = true
+                            Log.d(TAG, "🔒 Solicitando permissões...")
+                        } else {
+                            Log.d(TAG, "✅ Permissões já concedidas")
+                        }
                     }
+                }
 
-                    composable<Register> {
-                        RegisterScreen(
-                            onNavigateToLogin = {
-                                rootNavController.popBackStack()
-                            },
-                            onRegisterSuccess = { userId ->
-                                rootNavController.navigate(MainAppGraph) {
-                                    popUpTo(Register) { inclusive = true }
-                                }
-                            })
+                LaunchedEffect(networkState.isConnected) {
+                    if (!networkState.isConnected) {
+                        wasDisconnected = true
+                        Log.w(TAG, "📡 Conexão perdida!")
+                    } else if (wasDisconnected) {
+                        Log.d(TAG, "📡 Conexão restaurada!")
                     }
+                }
 
-                    composable<MainAppGraph> {
-                        val mainAppNavController = rememberNavController()
-
-                        val signOutAction = {
-                            signOut()
-                            rootNavController.navigate(Login) {
-                                popUpTo<MainAppGraph> { inclusive = true }
+                if (!networkState.isConnected) {
+                    NoConnectionScreen(
+                        onRetry = {
+                            if (networkState.checkConnection()) {
+                                wasDisconnected = false
                             }
                         }
+                    )
+                } else {
+                    MainApp(
+                        mainViewModel = mainViewModel,
+                        onSignOut = { signOut() }
+                    )
+                }
+            }
+        }
+    }
 
-                        MainScreen(
-                            mainAppNavController = mainAppNavController
-                        ) { paddingValues ->
-                            NavHost(
-                                navController = mainAppNavController,
-                                startDestination = NavigationBarItems.House.route,
-                                modifier = Modifier.padding(paddingValues)
-                            ) {
-                                composable(NavigationBarItems.House.route) {
-                                    HomeScreen()
+    @Composable
+    private fun MainApp(
+        mainViewModel: MainViewModel,
+        onSignOut: () -> Unit
+    ) {
+        val rootNavController = rememberNavController()
+        val context = LocalContext.current
+        val isAuthenticated by mainViewModel.isAuthenticated.collectAsStateWithLifecycle()
+        val isReady by mainViewModel.isReady.collectAsStateWithLifecycle()
+
+        LaunchedEffect(isReady, isAuthenticated) {
+            if (isReady && isAuthenticated) {
+                rootNavController.navigate(MainAppGraph) {
+                    popUpTo(Presentation) { inclusive = true }
+                }
+            }
+        }
+
+        NavHost(
+            navController = rootNavController,
+            startDestination = Presentation
+        ) {
+            composable<Presentation> {
+                PresentationScreen(
+                    onNavigateToHome = {
+                        rootNavController.navigate(Login) {
+                            popUpTo<Presentation> { inclusive = true }
+                        }
+                    },
+                    onExit = {
+                        (context as ComponentActivity).finish()
+                    }
+                )
+            }
+
+            composable<Login> {
+                LoginScreen(
+                    onLoginSuccess = { userId ->
+                        mainViewModel.refreshUserData()
+                        rootNavController.navigate(MainAppGraph) {
+                            popUpTo(Login) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        rootNavController.navigate(Register)
+                    }
+                )
+            }
+
+            composable<Register> {
+                RegisterScreen(
+                    onNavigateToLogin = {
+                        rootNavController.popBackStack()
+                    },
+                    onRegisterSuccess = { userId ->
+                        mainViewModel.refreshUserData()
+                        rootNavController.navigate(MainAppGraph) {
+                            popUpTo(Register) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable<MainAppGraph> {
+                val mainAppNavController = rememberNavController()
+                val userState by mainViewModel.userState.collectAsStateWithLifecycle()
+
+                val signOutAction = {
+                    onSignOut()
+                    mainViewModel.clearUserData()
+                    rootNavController.navigate(Login) {
+                        popUpTo<MainAppGraph> { inclusive = true }
+                    }
+                }
+
+                MainScreen(
+                    mainAppNavController = mainAppNavController,
+                    userName = userState.userName,
+                    userPhotoUrl = userState.photoUrl,
+                    isLoadingUserData = userState.isLoading
+                ) { paddingValues ->
+                    NavHost(
+                        navController = mainAppNavController,
+                        startDestination = NavigationBarItems.House.route,
+                        modifier = Modifier.padding(paddingValues)
+                    ) {
+                        composable(NavigationBarItems.House.route) {
+                            HomeScreen(mainViewModel)
+                        }
+                        composable(NavigationBarItems.Local.route) {
+                            EcoScreen()
+                        }
+                        composable(NavigationBarItems.Trophy.route) {
+                            RankingScreen(
+                                onNavigateToTasks = {
+                                    mainAppNavController.navigate("EcoTasksRoute") {
+                                        popUpTo(NavigationBarItems.Trophy.route) { inclusive = false }
+                                        launchSingleTop = true
+                                    }
                                 }
-                                composable(NavigationBarItems.Local.route) {
-                                    EcoScreen()
+                            )
+                        }
+                        composable("EcoTasksRoute") {
+                            EcoTasksScreen(
+                                onNavigateToRanking = {
+                                    mainAppNavController.navigate(NavigationBarItems.Trophy.route) {
+                                        popUpTo(NavigationBarItems.Trophy.route) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onBackClick = {
+                                    mainAppNavController.popBackStack()
                                 }
-                                composable(NavigationBarItems.Trophy.route) {
-                                    EcoTasksScreen()
-                                }
-                                composable(NavigationBarItems.Community.route) {
-                                    CommunityScreen()
-                                }
-                                composable(NavigationBarItems.Person.route) {
-                                    ProfileScreen(onSignOut = signOutAction,
-                                        onNavigateToSettings = {
-                                            // Exemplo: rootNavController.navigate(SettingsGraph)
-                                            // Você precisará definir a rota SettingsGraph ou SettingsScreen
-                                        }  )
-                                }
-                            }
+                            )
+                        }
+                        composable(NavigationBarItems.Community.route) {
+                            CommunityScreen()
+                        }
+                        composable(NavigationBarItems.Person.route) {
+                            ProfileScreen(
+                                onSignOut = signOutAction,
+                                onNavigateToSettings = {}
+                            )
                         }
                     }
                 }
@@ -157,9 +251,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Lógica de Sign Out
-    fun signOut() {
-        // Use a instância injetada do Firebase Auth
+    private fun signOut() {
         firebaseAuth.signOut()
 
         lifecycleScope.launch {
@@ -173,16 +265,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @Composable
 fun MainScreen(
     mainAppNavController: NavHostController,
+    userName: String? = null,
+    userPhotoUrl: String? = null,
+    isLoadingUserData: Boolean = false,
     content: @Composable (paddingValues: PaddingValues) -> Unit
 ) {
-    // Estado para controlar visibilidade da BottomBar
     var isDrawerOpen by remember { mutableStateOf(false) }
 
     Scaffold(
-        modifier = Modifier.padding(12.dp),
+        modifier = Modifier
+            .padding(12.dp)
+            .background(Color.White),
         bottomBar = {
             AnimatedVisibility(
                 visible = !isDrawerOpen,
@@ -203,16 +300,24 @@ fun MainScreen(
             outerPadding = paddingValues,
             onDrawerStateChange = { isOpen ->
                 isDrawerOpen = isOpen
-            }
+            },
+            userName = userName,
+            userPhotoUrl = userPhotoUrl,
+            isLoadingUserData = isLoadingUserData
         ) { combinedPadding ->
             content(combinedPadding)
         }
     }
 }
+
 @Serializable
 object Login
 @Serializable
 object Register
+@Serializable
+object RankingRoute
+@Serializable
+object EcoTasksRoute
 @Serializable
 object Presentation
 @Serializable

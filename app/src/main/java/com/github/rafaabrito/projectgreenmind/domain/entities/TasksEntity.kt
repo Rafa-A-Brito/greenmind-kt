@@ -11,5 +11,10 @@ data class TasksEntity(
     @ColumnInfo(name="missionTitle") val missionTitle: String,
     @ColumnInfo(name="finalPercentual") val finalPercentual: Float,
     @ColumnInfo(name="missionType") val missionType: String,
-    @ColumnInfo(name="rewardsPoints") val rewardPoints: Int
-    )
+    @ColumnInfo(name="missionStatus") val missionStatus: String,
+    @ColumnInfo(name="rewardsPoints") val rewardPoints: Int,
+
+    @ColumnInfo(name="initialProgressValue") val initialProgressValue: Float = 0f,
+    @ColumnInfo(name="durationInDays") val durationInDays: Int = 0,
+    @ColumnInfo(name="resetFrequency") val resetFrequency: String = "Nunca"
+)

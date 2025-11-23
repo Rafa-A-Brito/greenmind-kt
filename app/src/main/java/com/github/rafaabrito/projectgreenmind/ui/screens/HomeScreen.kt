@@ -23,21 +23,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircleOutline
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Recycling
-import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
@@ -48,6 +46,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.rafaabrito.projectgreenmind.R
 import com.github.rafaabrito.projectgreenmind.ui.theme.Black
 import com.github.rafaabrito.projectgreenmind.ui.theme.BlackShade
@@ -57,36 +58,26 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.DarkSpringGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
 import com.github.rafaabrito.projectgreenmind.ui.theme.Inter
-import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
 import com.github.rafaabrito.projectgreenmind.ui.theme.MediumGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.Micro5
 import com.github.rafaabrito.projectgreenmind.ui.theme.OutGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 import com.github.rafaabrito.projectgreenmind.ui.theme.StrongGreen
+import com.github.rafaabrito.projectgreenmind.ui.viewModel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
-fun PlaceholderUserImage(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(50.dp)
-            .clip(CircleShape)
-            .background(White)
-    ) {
-        // Ícone placeholder ou imagem real do usuário
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = "Usuário",
-            tint = Color.White,
-            modifier = Modifier.align(Alignment.Center)
-        )
-    }
-}
+fun HomeScreen(
+    viewModel: MainViewModel
+) {
+    val userState by viewModel.userState.collectAsStateWithLifecycle()
 
-@Composable
-fun HomeScreen() {
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshUserData()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -96,25 +87,44 @@ fun HomeScreen() {
     ){
         Spacer(modifier = Modifier.height(16.dp))
 
-        TopSection()
+        TopSection(
+            userName = userState.user?.name,
+            userPhotoUrl = userState.photoUrl,
+            isLoading = userState.isLoading,
+            userLevel = userState.userLevel,
+            userXP = userState.userXP
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         MiddleSection()
         Spacer(modifier = Modifier.height(16.dp))
 
-        BottomSection()
+        BottomSection(
+            userXP = userState.userXP,
+            userLevel = userState.userLevel
+        )
     }
 }
 
 @Composable
-fun TopSection() {
+fun TopSection(
+    userName: String? = null,
+    userPhotoUrl: String? = null,
+    isLoading: Boolean = false,
+    userLevel: Int = 0,
+    userXP: Int = 0
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            PlaceholderUserImage()
+            UserImage(
+                photoUrl = userPhotoUrl,
+                isLoading = isLoading
+            )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
@@ -125,7 +135,7 @@ fun TopSection() {
                     color = Color.Black
                 )
                 Text(
-                    text = "JOÃO",
+                    text = userName?.uppercase() ?: "USUÁRIO",
                     fontSize = 22.sp,
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
@@ -134,7 +144,7 @@ fun TopSection() {
             }
         }
 
-        // Nível e XP
+        // ✅ MUDANÇA 4: Nível e XP agora vêm do Room
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -149,24 +159,24 @@ fun TopSection() {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "NÍVEL 15",
+                text = "NÍVEL $userLevel",
                 fontSize = 18.sp,
                 fontFamily = Micro5,
                 fontWeight = FontWeight.Normal,
-                color = White
+                color = Color.White
             )
             Spacer(modifier = Modifier.width(8.dp))
             Image(
                 painter = painterResource(R.drawable.xp_total),
-                contentDescription = "Nível",
+                contentDescription = "XP",
                 modifier = Modifier.size(30.dp)
             )
             Text(
-                text = "4800 XP",
+                text = "$userXP XP",
                 fontSize = 18.sp,
                 fontFamily = Micro5,
                 fontWeight = FontWeight.Normal,
-                color = White
+                color = Color.White
             )
         }
     }
@@ -174,34 +184,75 @@ fun TopSection() {
     Spacer(modifier = Modifier.height(16.dp))
 
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .background(StrongGreen)
             .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         AchievementCard(
             title = "Pontos",
-            value = "38420 XP",
+            value = "$userXP XP",
             icon = R.drawable.trophy,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         AchievementCard(
             title = "Ofensiva (streak)",
-            value = "3 semanas",
-            icon = R.drawable.fire, // Ícone de Chama
+            value = "0 dias",
+            icon = R.drawable.fire,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         AchievementCard(
             title = "Desafios concluídos",
-            value = "85%",
+            value = "0%",
             icon = R.drawable.medal_v2,
             modifier = Modifier.weight(1f)
         )
     }
 }
 
+@Composable
+fun UserImage(
+    photoUrl: String?,
+    isLoading: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(50.dp)
+            .clip(CircleShape)
+            .background(if (isLoading) MediumGray else White)
+    ) {
+        if (isLoading) {
+            // Indicador de carregamento
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Carregando...",
+                tint = Color.Gray,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else if (photoUrl != null) {
+            // Usa Coil para carregar a imagem do Firebase
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = "Foto do usuário",
+                modifier = Modifier.fillMaxSize(),
+                placeholder = painterResource(R.drawable.placeholder_image),
+                error = painterResource(R.drawable.image_person_error)
+            )
+        } else {
+            // Ícone placeholder se não houver foto
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Usuário",
+                tint = Color.Gray,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
+}
 @Composable
 fun AchievementCard(
     title: String,
@@ -425,9 +476,12 @@ fun QuickActionCard(
         }
     }
 
+
 @Composable
-fun BottomSection() {
-    // Progresso da Semana
+fun BottomSection(
+    userXP: Int = 0,
+    userLevel: Int = 0
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -442,7 +496,12 @@ fun BottomSection() {
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    // Caixa de Progresso (XP)
+    val nextLevelXP = (userLevel + 1) * 1000
+    val currentLevelXP = userLevel * 1000
+    val xpProgress = (userXP - currentLevelXP).coerceAtLeast(0)
+    val xpNeeded = (nextLevelXP - currentLevelXP).coerceAtLeast(1)
+    val progressPercentage = (xpProgress.toFloat() / xpNeeded.toFloat()).coerceIn(0f, 1f)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -450,15 +509,12 @@ fun BottomSection() {
             .background(Color(0xFF0BA858))
             .padding(16.dp)
     ) {
-        // Título/ de XP
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-
-            ) {
+            Row {
                 Image(
                     modifier = Modifier.size(35.dp),
                     painter = painterResource(R.drawable.xp_user),
@@ -471,29 +527,28 @@ fun BottomSection() {
                     fontFamily = Micro5,
                     fontSize = 35.sp,
                     fontWeight = FontWeight.Normal,
-                    color = White
+                    color = Color.White
                 )
             }
             Row(
                 modifier = Modifier
-                    .padding(4.dp)
-                    .background(OutGreen,RoundedCornerShape(10.dp))
+                    .padding(horizontal = 5.dp)
+                    .background(OutGreen, RoundedCornerShape(10.dp))
             ) {
                 Text(
-                    text = "300/450 XP",
+                    text = "$xpProgress/$xpNeeded XP",
                     fontSize = 30.sp,
                     fontFamily = Micro5,
                     fontWeight = FontWeight.Normal,
-                    color = White
+                    color = Color.White
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Barra de Progresso Customizada
         LinearProgressIndicatorCustom(
-            progress = 300f / 450f,
+            progress = progressPercentage,
             progressColor = DarkSpringGreen,
             backgroundColor = Color(0xFF4C4D4E),
             modifier = Modifier
@@ -504,7 +559,6 @@ fun BottomSection() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Mensagem
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -514,7 +568,7 @@ fun BottomSection() {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Complete desafios para alcançar a meta e subir de nível 👌",
+                text = "Complete desafios para alcançar a meta e subir de nível 💪",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = White,
@@ -555,5 +609,5 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
 @Preview
 @Composable
 private fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen(viewModel = viewModel())
 }

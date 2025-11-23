@@ -131,6 +131,9 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
 
+    // Firebase imagens integration
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // OSM Android
     implementation(libs.osmdroid.android)
 

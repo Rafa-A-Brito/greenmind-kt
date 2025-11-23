@@ -2,7 +2,6 @@ package com.github.rafaabrito.projectgreenmind.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -11,61 +10,112 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.rafaabrito.projectgreenmind.R // Importe R.drawable
-import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGrayBlue
-import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
-import com.github.rafaabrito.projectgreenmind.ui.theme.OutGreen
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import com.github.rafaabrito.projectgreenmind.R
+import com.github.rafaabrito.projectgreenmind.domain.utils.permissions.rememberLocationPermissionState
+import com.github.rafaabrito.projectgreenmind.ui.theme.*
+import com.github.rafaabrito.projectgreenmind.ui.viewModel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
     onSignOut: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        item {
-            // --- A. Header do Perfil ---
-            ProfileHeader(
-                userName = "Nome do Usuário",
-                userRank = "Herói da Natureza",
-                onNavigateToSettings = onNavigateToSettings
-            )
-        }
+    val userName by viewModel.userName.collectAsStateWithLifecycle()
+    val userPhotoUrl by viewModel.userPhotoUrl.collectAsStateWithLifecycle()
+    val userLevel by viewModel.userLevel.collectAsStateWithLifecycle()
+    val totalScore by viewModel.totalScore.collectAsStateWithLifecycle()
+    val userRank by viewModel.userRank.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        item {
-            // --- B. Bloco de Estatísticas (Pontos, Ofensiva, Conclusão) ---
-            Spacer(modifier = Modifier.height(24.dp))
-            StatsBlock()
-        }
+    // ✅ Estados dos toggles
+    val showTipsPopup by viewModel.showTipsPopup.collectAsStateWithLifecycle()
+    val enableWeeklyNotifications by viewModel.enableWeeklyNotifications.collectAsStateWithLifecycle()
+    val allowLocation by viewModel.allowLocation.collectAsStateWithLifecycle()
 
-        item {
-            // --- C. Bloco de Badges / Conquistas ---
-            Spacer(modifier = Modifier.height(24.dp))
-            BadgesBlock()
-        }
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
 
-        item {
-            // --- D. Bloco de Configurações e Notificações (Toggles) ---
-            Spacer(modifier = Modifier.height(24.dp))
-            SettingsToggleBlock(onSignOut = onSignOut)
-        }
+    // ✅ Verificar se usuário tem conquistas (badges desbloqueados)
+    val hasAchievements = totalScore > 0 || userLevel > 0
 
-        item {
-            Spacer(modifier = Modifier.height(40.dp))
+    if (isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Color(0xFF5ED88B))
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            item {
+                ProfileHeader(
+                    userName = userName ?: "Usuário",
+                    userPhotoUrl = userPhotoUrl,
+                    userRank = userRank,
+                    userLevel = userLevel,
+                    onNavigateToSettings = onNavigateToSettings
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                // ✅ MUDANÇA 1: Mostrar skeleton se não tiver conquistas
+                if (hasAchievements) {
+                    StatsBlock(
+                        totalScore = totalScore,
+                        userLevel = userLevel
+                    )
+                } else {
+                    StatsBlockSkeleton()
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                // ✅ MUDANÇA 1: Mostrar skeleton de badges
+                if (hasAchievements) {
+                    BadgesBlock()
+                } else {
+                    BadgesBlockSkeleton()
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                // ✅ MUDANÇA 2 e 3: Toggles com dialogs e permission handler
+                SettingsToggleBlock(
+                    showTipsPopup = showTipsPopup,
+                    enableWeeklyNotifications = enableWeeklyNotifications,
+                    allowLocation = allowLocation,
+                    onShowTipsPopupChange = { viewModel.updateShowTipsPopup(it) },
+                    onEnableNotificationsChange = { viewModel.updateEnableNotifications(it) },
+                    onAllowLocationChange = { viewModel.updateAllowLocation(it) }
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(40.dp))
+            }
         }
     }
 }
@@ -73,14 +123,16 @@ fun ProfileScreen(
 @Composable
 fun ProfileHeader(
     userName: String,
+    userPhotoUrl: String?,
     userRank: String,
+    userLevel: Int,
     onNavigateToSettings: () -> Unit
 ) {
     Spacer(modifier = Modifier.height(16.dp))
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(OutGreen, RoundedCornerShape(15.dp)) // Cor verde do cabeçalho
+            .background(OutGreen, RoundedCornerShape(15.dp))
             .padding(vertical = 20.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -91,17 +143,29 @@ fun ProfileHeader(
                 .background(Color.White),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Avatar",
-                tint = Color(0xFF5ED88B),
-                modifier = Modifier.size(40.dp)
-            )
+            if (userPhotoUrl != null && userPhotoUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = userPhotoUrl,
+                    contentDescription = "Foto do usuário",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.placeholder_image),
+                    error = painterResource(R.drawable.image_person_error)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Avatar",
+                    tint = Color(0xFF5ED88B),
+                    modifier = Modifier.size(40.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Nome e Classificação
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = userName,
@@ -110,13 +174,20 @@ fun ProfileHeader(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = userRank, // Ex: "Herói da Natureza"
+                text = userRank,
+                fontFamily = Inter,
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 14.sp
             )
+            Text(
+                text = "Nível $userLevel",
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 16.sp,
+                fontFamily = Inter,
+                fontWeight = FontWeight.SemiBold
+            )
         }
 
-        // Botão de Configurações (AÇÃO CLICÁVEL)
         IconButton(onClick = onNavigateToSettings) {
             Icon(
                 imageVector = Icons.Default.Settings,
@@ -129,7 +200,7 @@ fun ProfileHeader(
 }
 
 @Composable
-fun StatsBlock() {
+fun StatsBlock(totalScore: Int, userLevel: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -138,38 +209,81 @@ fun StatsBlock() {
     ) {
         StatsCard(
             title = "Pontos",
-            value = "38420 XP",
-            iconRes = R.drawable.trophy, // Ícone de Troféu
+            value = "$totalScore XP",
+            iconRes = R.drawable.trophy,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        StatsCard(
+            title = "Nível",
+            value = "$userLevel",
+            iconRes = R.drawable.medal_v2,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(8.dp))
         StatsCard(
             title = "Ofensiva",
-            value = "200 dias",
-            iconRes = R.drawable.fire, // Ícone de Fogo
-            modifier = Modifier.weight(1f)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        StatsCard(
-            title = "Conclusão",
-            value = "20",
-            iconRes = R.drawable.medal_v2, // Ícone de Medalha
+            value = "0 dias",
+            iconRes = R.drawable.fire,
             modifier = Modifier.weight(1f)
         )
     }
 }
 
+// ✅ MUDANÇA 1: Skeleton para StatsBlock
 @Composable
-fun StatsCard(
-    title: String,
-    value: String,
-    iconRes: Int,
-    modifier: Modifier
-) {
+fun StatsBlockSkeleton() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        repeat(3) {
+            StatsCardSkeleton(modifier = Modifier.weight(1f))
+            if (it < 2) Spacer(modifier = Modifier.width(8.dp))
+        }
+    }
+}
+
+@Composable
+fun StatsCardSkeleton(modifier: Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFE8F5E9)) // Fundo verde claro
+            .background(Color(0xFFE8F5E9))
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.LightGray)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.6f)
+                .height(12.dp)
+                .background(Color.LightGray, RoundedCornerShape(4.dp))
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(14.dp)
+                .background(Color.LightGray, RoundedCornerShape(4.dp))
+        )
+    }
+}
+
+@Composable
+fun StatsCard(title: String, value: String, iconRes: Int, modifier: Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFE8F5E9))
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -189,9 +303,9 @@ fun StatsCard(
                     .padding(2.dp)
             )
         }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = title, fontSize = 14.sp, color = Color.Gray)
-            Text(text = value, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = title, fontSize = 14.sp, fontFamily = Inter, color = Color.Gray)
+        Text(text = value, fontSize = 16.sp, fontFamily = Inter, fontWeight = FontWeight.Bold, color = Color.Black)
     }
 }
 
@@ -206,23 +320,45 @@ fun BadgesBlock() {
                 BadgeItem(
                     title = "Chama Sustentável",
                     subTitle = "+ 100 XP",
-                    iconRes = R.drawable.green_fire // Ícone de Folha e Fogo
+                    iconRes = R.drawable.green_fire
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                // Badge "Guardião da Água"
                 BadgeItem(
                     title = "Guardião da Água",
                     subTitle = "+ 100 XP",
-                    iconRes = R.drawable.guard // Ícone de Gota d'água e Pessoa
+                    iconRes = R.drawable.guard
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
-
-            // Badges de Placeholder à direita
             Column(modifier = Modifier.weight(1f)) {
                 PlaceholderBadgeItem()
                 Spacer(modifier = Modifier.height(8.dp))
                 PlaceholderBadgeItem()
+            }
+        }
+    }
+}
+
+// ✅ MUDANÇA 1: Skeleton para Badges
+@Composable
+fun BadgesBlockSkeleton() {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                repeat(2) {
+                    PlaceholderBadgeItem()
+                    if (it < 1) Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                repeat(2) {
+                    PlaceholderBadgeItem()
+                    if (it < 1) Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
@@ -254,8 +390,8 @@ fun BadgeItem(title: String, subTitle: String, iconRes: Int) {
         }
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
-            Text(text = subTitle, fontSize = 12.sp, color = Color.Gray)
+            Text(text = title, fontSize = 14.sp, fontFamily = Inter, fontWeight = FontWeight.SemiBold, color = Color.Black)
+            Text(text = subTitle, fontFamily = Inter, fontSize = 12.sp, color = Color.Gray)
         }
     }
 }
@@ -270,7 +406,6 @@ fun PlaceholderBadgeItem() {
             .background(Color(0xFFE8F5E9))
             .padding(12.dp)
     ) {
-        // Placeholder com ícone e linhas (simulando texto)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -298,61 +433,187 @@ fun PlaceholderBadgeItem() {
     }
 }
 
+// ✅ MUDANÇA 2 e 3: Toggles com Dialogs e Permission Handler
 @Composable
-fun SettingsToggleBlock(onSignOut: () -> Unit) {
+fun SettingsToggleBlock(
+    showTipsPopup: Boolean,
+    enableWeeklyNotifications: Boolean,
+    allowLocation: Boolean,
+    onShowTipsPopupChange: (Boolean) -> Unit,
+    onEnableNotificationsChange: (Boolean) -> Unit,
+    onAllowLocationChange: (Boolean) -> Unit
+) {
+    var showTipsDialog by remember { mutableStateOf(false) }
+    var showNotificationsDialog by remember { mutableStateOf(false) }
+    var showLocationDialog by remember { mutableStateOf(false) }
+
+    // ✅ Permission Handler
+    val locationPermissionState = rememberLocationPermissionState(
+        onPermissionGranted = { onAllowLocationChange(true) },
+        onPermissionDenied = { onAllowLocationChange(false) }
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF0F0F0)) // Fundo cinza claro
+            .background(Color(0xFFF0F0F0))
             .padding(16.dp)
     ) {
-        // Toggles (usando um componente simplificado)
-        ToggleItem(title = "\uD83C\uDFAC Pop-up de dicas extras ", isChecked = true)
+        ToggleItem(
+            title = "🎬 Pop-up de dicas extras",
+            isChecked = showTipsPopup,
+            onClick = { showTipsDialog = true }
+        )
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color.LightGray)
-        ToggleItem(title = "\uD83D\uDD14 Notificações semanais  ", isChecked = false)
+
+        ToggleItem(
+            title = "🔔 Notificações semanais",
+            isChecked = enableWeeklyNotifications,
+            onClick = { showNotificationsDialog = true }
+        )
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color.LightGray)
-        ToggleItem(title = "\uD83D\uDD25 Expor ofensiva a todos ", isChecked = true)
 
-        Spacer(modifier = Modifier.height(16.dp))
+        ToggleItem(
+            title = "📍 Permitir localização atual",
+            isChecked = allowLocation,
+            onClick = { showLocationDialog = true }
+        )
+    }
 
-        // Botão de Logout (da sua implementação original)
-        Button(
-            onClick = onSignOut,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252)),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text("Sair", color = Color.White)
-        }
+    // ✅ Dialogs
+    if (showTipsDialog) {
+        SettingDialog(
+            title = "Dicas Extras",
+            message = "Deseja receber pop-ups com dicas extras sobre sustentabilidade?",
+            currentState = showTipsPopup,
+            onConfirm = {
+                onShowTipsPopupChange(it)
+                showTipsDialog = false
+            },
+            onDismiss = { showTipsDialog = false }
+        )
+    }
+
+    if (showNotificationsDialog) {
+        SettingDialog(
+            title = "Notificações Semanais",
+            message = "Deseja receber notificações semanais sobre seus progressos e desafios?",
+            currentState = enableWeeklyNotifications,
+            onConfirm = {
+                onEnableNotificationsChange(it)
+                showNotificationsDialog = false
+            },
+            onDismiss = { showNotificationsDialog = false }
+        )
+    }
+
+    if (showLocationDialog) {
+        SettingDialog(
+            title = "Localização",
+            message = "Permitir que o app acesse sua localização?",
+            currentState = allowLocation,
+            onConfirm = { enabled ->
+                if (enabled && !locationPermissionState.hasPermission) {
+                    locationPermissionState.requestPermission()
+                } else {
+                    onAllowLocationChange(enabled)
+                }
+                showLocationDialog = false
+            },
+            onDismiss = { showLocationDialog = false }
+        )
     }
 }
 
 @Composable
-fun ToggleItem(title: String, isChecked: Boolean) {
+fun ToggleItem(title: String, isChecked: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(0.8f)
-                .background(DarkGrayBlue, RoundedCornerShape(8.dp))
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .background(
+                    if (isChecked) DarkGrayBlue else Color.DarkGray.copy(alpha = 0.6f),
+                    RoundedCornerShape(8.dp)
+                )
                 .padding(7.dp)
-
-            ) {
-            Text(text = title, fontSize = 16.sp, color = Color.White)
+        ) {
+            Text(text = title, fontFamily = Inter, fontSize = 16.sp, color = Color.White)
         }
         Switch(
             checked = isChecked,
-            onCheckedChange = { /* Ação de toggle */ },
+            onCheckedChange = { onClick() },
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF5ED88B)
+                checkedTrackColor = Color(0xFF5ED88B),
+                uncheckedThumbColor = Color.Gray,
+                uncheckedTrackColor = Color.DarkGray
             )
         )
     }
+}
+
+// ✅ Dialog atraente
+@Composable
+fun SettingDialog(
+    title: String,
+    message: String,
+    currentState: Boolean,
+    onConfirm: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+        },
+        text = {
+            Text(
+                text = message,
+                fontFamily = Inter,
+                fontSize = 16.sp,
+                lineHeight = 22.sp
+            )
+        },
+        confirmButton = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                TextButton(
+                    onClick = { onConfirm(false) },
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = Color.DarkGray.copy(alpha = 0.6f)
+                    ),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Não", color = Color.White, fontFamily = Inter, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(
+                    onClick = { onConfirm(true) },
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = Color(0xFF5ED88B)
+                    ),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Sim", color = Color.White, fontFamily = Inter, fontWeight = FontWeight.Bold)
+                }
+            }
+        },
+        containerColor = Color.White,
+        shape = RoundedCornerShape(16.dp)
+    )
 }
 
 @Preview

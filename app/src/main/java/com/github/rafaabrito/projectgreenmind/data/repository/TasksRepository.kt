@@ -6,8 +6,8 @@ import com.github.rafaabrito.projectgreenmind.domain.entities.TasksEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.TasksProgressEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-
-class TasksRepository(
+import javax.inject.Inject // Novo Import
+class TasksRepository @Inject constructor(
     private val tasksDao: TasksDao,
     private val tasksProgressDao: TasksProgressDao
 ) {

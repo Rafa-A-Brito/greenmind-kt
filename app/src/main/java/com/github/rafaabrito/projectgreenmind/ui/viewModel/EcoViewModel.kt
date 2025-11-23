@@ -55,7 +55,6 @@ class EcoViewModel @Inject constructor(
 
     private val TAG = "EcoViewModel"
 
-    // Estados
     private val _ecoPoints = MutableStateFlow<List<LocalEcoEntity>>(emptyList())
     val ecoPoints: StateFlow<List<LocalEcoEntity>> = _ecoPoints
 
@@ -68,11 +67,9 @@ class EcoViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    // ✅ Novo: Ecoponto selecionado para ampliar no mapa
     private val _selectedEcoPoint = MutableStateFlow<LocalEcoEntity?>(null)
     val selectedEcoPoint: StateFlow<LocalEcoEntity?> = _selectedEcoPoint
 
-    // ✅ Novo: Controla se deve mostrar o diálogo de navegação
     private val _showNavigationDialog = MutableStateFlow<LocalEcoEntity?>(null)
     val showNavigationDialog: StateFlow<LocalEcoEntity?> = _showNavigationDialog
 
@@ -80,22 +77,18 @@ class EcoViewModel @Inject constructor(
         _searchTerm.value = newTerm
     }
 
-    // ✅ Selecionar ecoponto para ampliar mapa
     fun selectEcoPoint(ecoPoint: LocalEcoEntity) {
         _selectedEcoPoint.value = ecoPoint
     }
 
-    // ✅ Limpar seleção
     fun clearSelectedEcoPoint() {
         _selectedEcoPoint.value = null
     }
 
-    // ✅ Mostrar diálogo de navegação
     fun showNavigationDialog(ecoPoint: LocalEcoEntity) {
         _showNavigationDialog.value = ecoPoint
     }
 
-    // ✅ Fechar diálogo de navegação
     fun dismissNavigationDialog() {
         _showNavigationDialog.value = null
     }
@@ -108,7 +101,6 @@ class EcoViewModel @Inject constructor(
             points
         } else {
             points.filter { ecopoint ->
-                // ✅ Busca em múltiplos campos
                 ecopoint.localName.contains(term, ignoreCase = true) ||
                         ecopoint.street.contains(term, ignoreCase = true) ||
                         ecopoint.neighborhood.contains(term, ignoreCase = true) ||
@@ -128,7 +120,7 @@ class EcoViewModel @Inject constructor(
         insertMockData()
     }
 
-    // ✅ Função pública para buscar localização (chamada após permissão concedida)
+    //  Função pública para buscar localização com retry
     fun fetchUserLocation() {
         _isLoading.value = true
 
@@ -141,59 +133,70 @@ class EcoViewModel @Inject constructor(
                     cancellationToken.token
                 ).await()
 
-                if (location != null) {
+                if (location != null && location.latitude != 0.0 && location.longitude != 0.0) {
+                    Log.d(TAG, "Localização obtida: ${location.latitude}, ${location.longitude}")
+
                     val addressResult = getStreetAndCityFromCoords(location.latitude, location.longitude)
 
                     _userLocation.value = UserLocation(
                         latitude = location.latitude,
                         longitude = location.longitude,
-                        street = addressResult.street ?: "Rua Indisponível",
+                        street = addressResult.street ?: "Endereço não disponível",
                         numero = addressResult.numero,
-                        city = addressResult.city ?: "Cidade Indisponível"
+                        city = addressResult.city ?: "Cidade não disponível"
                     )
 
-                    // ✅ Calcular distâncias após obter localização
+                    // Calcular distâncias após obter localização
                     calculateDistances()
                 } else {
-                    setDefaultLocation("Localização falhou. Usando localização padrão.")
+                    Log.w(TAG, "Localização nula ou inválida")
+                    setDefaultLocation("Não foi possível obter sua localização. Mostrando ecopontos de Guarulhos.")
                 }
             } catch (e: SecurityException) {
                 Log.e(TAG, "Permissão negada: ${e.message}")
                 setDefaultLocation("Permissão de localização negada.")
             } catch (e: Exception) {
-                Log.e(TAG, "Erro: ${e.message}")
-                setDefaultLocation("Erro ao obter localização: ${e.message}")
+                Log.e(TAG, "Erro ao obter localização: ${e.message}")
+                setDefaultLocation("Erro ao obter localização. Mostrando ecopontos de Guarulhos.")
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    // ✅ Função auxiliar para localização padrão (Guarulhos)
     private fun setDefaultLocation(message: String) {
-        _userLocation.value = null // Não define localização do usuário
+        _userLocation.value = null
         showToast(message)
     }
 
-    // ✅ Calcular distância entre usuário e ecopontos
+    // Calcular distância com fórmula de Haversine (linha reta)
     private fun calculateDistances() {
         val userLoc = _userLocation.value ?: return
 
         viewModelScope.launch {
             val updatedPoints = _ecoPoints.value.map { ecoPoint ->
-                val distance = calculateDistance(
+                val distance = calculateHaversineDistance(
                     userLoc.latitude, userLoc.longitude,
                     ecoPoint.lat, ecoPoint.long
                 )
-                ecoPoint.copy(distance = String.format("%.2f km", distance))
+
+                // ✅ Estimativa de distância real (30% a mais que linha reta)
+                val estimatedDistance = distance * 1.3
+
+                val distanceText = when {
+                    estimatedDistance < 1.0 -> "~${(estimatedDistance * 1000).toInt()} m"
+                    else -> "~${"%.1f".format(estimatedDistance)} km"
+                }
+
+                ecoPoint.copy(distance = distanceText)
             }
             _ecoPoints.value = updatedPoints
         }
     }
 
-    // ✅ Fórmula de Haversine para calcular distância
-    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val earthRadius = 6371.0 // km
+    // Fórmula de Haversine para calcular distância em linha reta
+    private fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val earthRadius = 6371.0 // Raio da Terra em km
 
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
@@ -207,15 +210,14 @@ class EcoViewModel @Inject constructor(
         return earthRadius * c
     }
 
-    private suspend fun getStreetAndCityFromCoords(lat: Double, lon: Double): AddressResult = withContext(
-        Dispatchers.IO) {
+    private suspend fun getStreetAndCityFromCoords(lat: Double, lon: Double): AddressResult = withContext(Dispatchers.IO) {
         if (!Geocoder.isPresent()) {
             Log.e(TAG, "Geocoder indisponível no dispositivo.")
             return@withContext AddressResult("Serviço de Geocodificação indisponível", null, null)
         }
 
         try {
-            val geocoder = Geocoder(context, Locale.getDefault())
+            val geocoder = Geocoder(context, Locale("pt", "BR"))
 
             @Suppress("DEPRECATION")
             val addresses = geocoder.getFromLocation(lat, lon, 1)
@@ -226,14 +228,14 @@ class EcoViewModel @Inject constructor(
                 AddressResult(
                     street = address.thoroughfare,
                     numero = address.subThoroughfare,
-                    city = address.locality ?: address.adminArea
+                    city = address.locality ?: address.subAdminArea ?: address.adminArea
                 )
             } else {
                 AddressResult("Endereço não encontrado", null, null)
             }
         } catch (e: IOException) {
             Log.e(TAG, "Falha no Geocoder (IO): ${e.message}")
-            AddressResult("Erro de rede/serviço ao buscar endereço", null, null)
+            AddressResult("Erro de rede ao buscar endereço", null, null)
         } catch (e: Exception) {
             Log.e(TAG, "Erro inesperado no Geocoder: ${e.message}")
             AddressResult("Erro ao processar endereço", null, null)
@@ -250,70 +252,81 @@ class EcoViewModel @Inject constructor(
             if (localEcoRepository.getAllLocalEco().first().isEmpty()) {
                 val mockEcopoints = listOf(
                     LocalEcoEntity(
-                        lat = -23.46883, long = -46.53913,
+                        lat = -23.469250238622532, long = -46.539038265135225,  // -23.469250238622532, -46.539038265135225
                         localName = "Ecoponto Gopoúva",
                         street = "Rua Guarulhos",
                         numero = "34",
                         neighborhood = "Gopoúva",
                         city = "Guarulhos",
                         cep = "07020-201",
-                        distance = "indisponível",
-                        recyclableTypes = listOf("Entulho", "Móveis", "Poda", "Vidro", "Metal", "Plástico", "Papelão")
+                        distance = "",
+                        recyclableTypes = listOf("Aceita resíduos conforme os materiais listados nos ícones acima do mapa")
                     ),
                     LocalEcoEntity(
-                        lat = -23.45495, long = -46.52576,
+                        lat = -23.458095788726766, long = -46.52330283012511, //-23.458095788726766, -46.52330283012511
                         localName = "Ecoponto Paraventi",
                         street = "Rua Apolônia Vieira de Jesus",
                         numero = "91",
                         neighborhood = "Paraventi",
                         city = "Guarulhos",
                         cep = "07120-060",
-                        distance = "indisponível",
-                        recyclableTypes = listOf("Entulho", "Madeira", "Poda", "Vidro", "Metal", "Plástico", "Papel")
+                        distance = "",
+                        recyclableTypes = listOf("Aceita resíduos conforme os materiais listados nos ícones acima do mapa")
                     ),
                     LocalEcoEntity(
-                        lat = -23.41066, long = -46.37419,
+                        lat = -23.41066, long = -46.37419, //
                         localName = "Ecoponto Jardim Álamo",
                         street = "Rua Gentil da Silva Leite Filho",
                         numero = "15",
                         neighborhood = "Jardim Álamo",
                         city = "Guarulhos",
                         cep = "07176-680",
-                        distance = "indisponível",
-                        recyclableTypes = listOf("Entulho", "Móveis", "Poda", "Madeira", "Óleo", "Eletrodomésticos", "Gesso")
+                        distance = "",
+                        recyclableTypes = listOf("Aceita resíduos conforme os materiais listados nos ícones acima do mapa")
                     ),
                     LocalEcoEntity(
-                        lat = -23.40948, long = -46.45981,
+                        lat = -23.406365750210636, long =  -46.46207049761836, // -23.406365750210636, -46.46207049761836
                         localName = "Ecoponto Santos Dumont",
                         street = "Estrada do Saboó",
                         numero = "795",
                         neighborhood = "Santos Dumont",
                         city = "Guarulhos",
                         cep = "07152-000",
-                        distance = "indisponível",
-                        recyclableTypes = listOf("Entulho", "Móveis", "Poda", "Eletrônicos", "Pneus", "Recicláveis")
+                        distance = "",
+                        recyclableTypes = listOf("Aceita resíduos conforme os materiais listados nos ícones acima do mapa")
                     ),
                     LocalEcoEntity(
-                        lat = -23.41066, long = -46.53330,
+                        lat = -23.414416825252275, long =  -46.42805238385875, // -23.414416825252275, -46.42805238385875
                         localName = "Ecoponto Presidente Dutra",
                         street = "Avenida João Bassi",
                         numero = "707",
                         neighborhood = "Jardim Presidente Dutra",
                         city = "Guarulhos",
                         cep = "07171-137",
-                        distance = "indisponível",
-                        recyclableTypes = listOf("Entulho", "Madeira", "Poda", "Móveis", "Eletrodomésticos", "Recicláveis")
+                        distance = "",
+                        recyclableTypes = listOf("Aceita resíduos conforme os materiais listados nos ícones acima do mapa")
                     ),
                     LocalEcoEntity(
-                        lat = -23.43719, long = -46.40997,
+                        lat = -23.43601591907332, long = -46.409574761426995, // -23.43601591907332, -46.409574761426995
                         localName = "Ecoponto Pimentas",
                         street = "Rua Itália",
                         numero = "13",
                         neighborhood = "Parque das Nações",
                         city = "Guarulhos",
                         cep = "07243-313",
-                        distance = "indisponível",
-                        recyclableTypes = listOf("Entulho", "Poda", "Madeira", "Móveis", "Eletrodomésticos", "Papel", "Vidro", "Metal", "Plástico")
+                        distance = "",
+                        recyclableTypes = listOf("Aceita resíduos conforme os materiais listados nos ícones acima do mapa")
+                    ),
+                    LocalEcoEntity(
+                        lat =  -23.419675954409175, long =  -46.52049088978411, // -23.419675954409175, -46.52049088978411
+                        localName = "Ecoponto Jardim Adriana",
+                        street = " Rua Valter Pereira de Lima,",
+                        numero = "105",
+                        neighborhood = "Vila Sítio dos Morros",
+                        city = "Guarulhos",
+                        cep = " 07135-210",
+                        distance = "",
+                        recyclableTypes = listOf("Aceita resíduos conforme os materiais listados nos ícones acima do mapa")
                     )
                 )
                 mockEcopoints.forEach {

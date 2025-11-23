@@ -14,6 +14,8 @@ interface AuthService {
 
     suspend fun signInWithGoogleIdToken(idToken: String): AuthResponse
 
+    suspend fun getCurrentUserProfileDetails(): AuthProfileDetails?
+
     data class AuthResult(
         val authId: String,
         val email: String,
@@ -35,4 +37,11 @@ interface AuthService {
     enum class SocialProvider {
         GOOGLE
     }
+
+    data class AuthProfileDetails(
+        val authId: String,
+        val email: String,
+        val name: String?,
+        val profilePictureUrl: String?
+    )
 }

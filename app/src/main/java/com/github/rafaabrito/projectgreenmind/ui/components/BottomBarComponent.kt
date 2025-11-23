@@ -44,8 +44,13 @@ fun BottomBarComponent(navController: NavController) {
     val currentDestination by navController.currentBackStackEntryAsState()
     val currentRoute = currentDestination?.destination?.route
 
-    val selectedIndex = remember(currentRoute) {
-        navigationBarItems.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
+    val normalizedRoute = when {
+        currentRoute?.contains("EcoTasksRoute") == true -> "eco_tasks"
+        else -> currentRoute
+    }
+
+    val selectedIndex = remember(normalizedRoute) {
+        navigationBarItems.indexOfFirst { it.route == normalizedRoute }.coerceAtLeast(0)
     }
 
         AnimatedNavigationBar(
@@ -81,10 +86,10 @@ fun BottomBarComponent(navController: NavController) {
             }
         }
     }
-enum class NavigationBarItems(val icon : ImageVector, val route: String){
+enum class NavigationBarItems(val icon: ImageVector, val route: String) {
     House(icon = Icons.Default.Home, route = "home"),
     Local(icon = Icons.Default.LocationOn, route = "eco"),
-    Trophy(icon =  Icons.Outlined.Leaderboard, route = "eco_tasks"),
+    Trophy(icon = Icons.Outlined.Leaderboard, route = "eco_tasks"),
     Community(icon = Icons.Default.Groups, route = "community"),
     Person(icon = Icons.Default.Person, route = "profile")
 }

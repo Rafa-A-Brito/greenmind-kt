@@ -152,4 +152,19 @@ class FirebaseAuthServiceImpl @Inject constructor(
             mapFirebaseExceptionToError(e)
         }
     }
+
+    override suspend fun getCurrentUserProfileDetails(): AuthService.AuthProfileDetails? {
+        val firebaseUser = firebaseAuth.currentUser
+
+        if (firebaseUser == null || firebaseUser.uid.isEmpty() || firebaseUser.email.isNullOrEmpty()) {
+            return null
+        }
+
+        return AuthService.AuthProfileDetails(
+            authId = firebaseUser.uid,
+            email = firebaseUser.email!!,
+            name = firebaseUser.displayName,
+            profilePictureUrl = firebaseUser.photoUrl?.toString()
+        )
+    }
 }

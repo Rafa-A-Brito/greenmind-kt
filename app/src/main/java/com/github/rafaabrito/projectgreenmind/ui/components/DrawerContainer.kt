@@ -34,7 +34,10 @@ fun DrawerContainer(
     showTopBar: Boolean = true,
     title: String = "",
     outerPadding: PaddingValues = PaddingValues(0.dp),
-    onDrawerStateChange: (Boolean) -> Unit = {}, // ✅ Novo parâmetro
+    onDrawerStateChange: (Boolean) -> Unit = {},
+    userName: String? = null,
+    userPhotoUrl: String? = null,
+    isLoadingUserData: Boolean = false,
     content: @Composable (innerPadding: PaddingValues) -> Unit
 ) {
     var drawerState by remember { mutableStateOf(CustomDrawerState.Closed) }
@@ -72,7 +75,10 @@ fun DrawerContainer(
                 },
                 onCloseClick = {
                     drawerState = CustomDrawerState.Closed
-                }
+                },
+                userName = userName,
+                userPhotoUrl = userPhotoUrl,
+                isLoading = isLoadingUserData
             )
         }
 

@@ -29,4 +29,14 @@ interface ScoreDao {
 
     @Query("SELECT * FROM score ORDER BY totalScore DESC")
     fun getAllScores(): Flow<List<ScoreEntity>>
+
+    @Query("""
+        SELECT COALESCE(SUM(scoreEarned), 0) 
+        FROM scoreProgress 
+        WHERE userId = :userId AND isCompleted = 1
+    """)
+    suspend fun getTotalScoreByUserId(userId: Int): Int
+
+    @Query("SELECT COALESCE(totalScore, 0) FROM score WHERE userId = :userId LIMIT 1")
+    suspend fun getTotalScoreFromScoreTable(userId: Int): Int
 }
