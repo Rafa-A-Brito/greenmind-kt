@@ -23,13 +23,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.rafaabrito.projectgreenmind.ui.theme.Black
 import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGrayBlue
+import com.github.rafaabrito.projectgreenmind.ui.theme.Green
 import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
 import com.github.rafaabrito.projectgreenmind.ui.theme.Inter
 import com.github.rafaabrito.projectgreenmind.ui.theme.OutGreen
@@ -101,15 +105,54 @@ fun AboutProjectScreen(
                 icon = Icons.Default.FlagCircle,
                 title = "Objetivo",
                 content = {
+
                     Text(
-                        text = "O GreenMind é um aplicativo dedicado à promoção de práticas sustentáveis e conscientização ambiental. " +
-                                "Nosso objetivo é engajar usuários através de desafios, recompensas e educação sobre sustentabilidade, " +
-                                "contribuindo para um futuro mais verde e equilibrado.",
+                        text = buildAnnotatedString {
+                            append("O ")
+                            withStyle(
+                                style = SpanStyle(
+                                    color = OutGreen,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("GreenMind")
+                            }
+                            append(" visa:\n\n")
+
+                            append("• ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Conscientização Ambiental: ")
+                            }
+                            append("Promover o entendimento sobre práticas sustentáveis.\n")
+
+                            append("• ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Educação Prática e Gamificação: ")
+                            }
+                            append("Tornar o aprendizado mais dinâmico.\n")
+
+                            append("• ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Hábitos Sustentáveis: ")
+                            }
+                            append("Incentivar escolhas diárias mais responsáveis.\n")
+
+                            append("• ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Descarte Correto: ")
+                            }
+                            append("Facilitar o acesso a informações e ecopontos\n")
+
+                            append("• ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Engajamento Social: ")
+                            }
+                            append("Motivar a participação ativa da comunidade.\n")
+                        },
                         fontSize = 15.sp,
                         fontFamily = Inter,
-                        color = Black,
                         lineHeight = 22.sp,
-                        textAlign = TextAlign.Justify,
+                        color = Black,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
