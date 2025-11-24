@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,8 +33,8 @@ data class EcoTaskUi(
     val iconResId: Int,
     val progress: Float,
     val isCompleted: Boolean,
-    val category: String, // ✅ Adicionado
-    val level: String // ✅ Adicionado
+    val category: String,
+    val level: String
 )
 
 data class UserLevelState(
@@ -57,7 +57,6 @@ class EcoTasksViewModel @Inject constructor(
     private val _currentUserId = MutableStateFlow<Int?>(null)
     private val _isPopulating = MutableStateFlow(false)
 
-    // ✅ Novos estados adicionados
     private val _showCongratulationsDialog = MutableStateFlow(false)
     private val _lastCompletedTask = MutableStateFlow<EcoTaskUi?>(null)
     private val _userLevelState = MutableStateFlow(UserLevelState())
@@ -66,20 +65,24 @@ class EcoTasksViewModel @Inject constructor(
     val lastCompletedTask: StateFlow<EcoTaskUi?> = _lastCompletedTask.asStateFlow()
     val userLevelState: StateFlow<UserLevelState> = _userLevelState.asStateFlow()
 
-    private val _refreshTrigger = MutableStateFlow(0L)
+    private val _refreshTrigger = MutableStateFlow(0)
 
     init {
+        loadUserId()
+    }
+    private fun loadUserId() {
         viewModelScope.launch {
             try {
                 val authDetails = authService.getCurrentUserProfileDetails()
                 if (authDetails != null) {
                     val user = userRepository.getUserByAuthId(authDetails.authId)
-                    _currentUserId.value = user?.userId
-                    Log.d(TAG, "✅ UserID carregado: ${user?.userId}")
 
-                    // ✅ Carregar nível do usuário
-                    user?.userId?.let { userId ->
-                        loadUserLevel(userId)
+                    if (user != null) {
+                        _currentUserId.value = user.userId
+                        loadUserLevel(user.userId)
+                        Log.d(TAG, "✅ UserID carregado: ${user.userId}")
+                    } else {
+                        Log.w(TAG, "⚠️ Usuário não encontrado no banco")
                     }
                 } else {
                     Log.w(TAG, "⚠️ Nenhum usuário autenticado")
@@ -91,7 +94,13 @@ class EcoTasksViewModel @Inject constructor(
         }
     }
 
-    // Função para carregar nível do usuário
+    fun ensureUserIdLoaded() {
+        if (_currentUserId.value == null) {
+            Log.d(TAG, "🔄 Recarregando userId...")
+            loadUserId()
+        }
+    }
+
     private suspend fun loadUserLevel(userId: Int) {
         try {
             val totalScore = scoreRepository.getTotalScoreByUserId(userId)
@@ -112,7 +121,6 @@ class EcoTasksViewModel @Inject constructor(
         }
     }
 
-    // Função para determinar nome do nível
     private fun getLevelName(level: Int): String {
         return when (level) {
             1 -> "Iniciante"
@@ -124,7 +132,6 @@ class EcoTasksViewModel @Inject constructor(
         }
     }
 
-    // ✅ Função atualizada para pegar ícone por categoria
     private fun getIconResId(category: String): Int {
         return when (category.lowercase()) {
             "resíduos", "residuos" -> R.drawable.ic_sustainability
@@ -139,9 +146,9 @@ class EcoTasksViewModel @Inject constructor(
 
     val ecoTasks: StateFlow<List<EcoTaskUi>> = combine(
         tasksRepository.getAllTasks(),
+        _currentUserId,
         _refreshTrigger
-    ) { tasks, _ ->
-        val userId = _currentUserId.value
+    ) { tasks, userId, _ ->
         if (userId == null) {
             Log.w(TAG, "⚠️ UserID ainda é null, retornando lista vazia")
             emptyList()
@@ -153,6 +160,7 @@ class EcoTasksViewModel @Inject constructor(
             }
         }
     }
+        .distinctUntilChanged()
         .catch { e ->
             Log.e(TAG, "❌ Erro no flow de tarefas: ${e.message}")
             e.printStackTrace()
@@ -195,7 +203,6 @@ class EcoTasksViewModel @Inject constructor(
         )
     }
 
-    // ✅ Função atualizada com diálogo de parabéns
     fun completeTask(task: EcoTaskUi) {
         if (task.isCompleted) {
             Log.w(TAG, "⚠️ Tarefa ${task.taskId} já está completa")
@@ -205,6 +212,7 @@ class EcoTasksViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userId = _currentUserId.value
+
                 if (userId == null) {
                     Log.e(TAG, "❌ UserID é null, não pode completar tarefa")
                     return@launch
@@ -212,24 +220,20 @@ class EcoTasksViewModel @Inject constructor(
 
                 Log.d(TAG, "✅ Completando tarefa ${task.taskId} para userId: $userId")
 
-                // 1. Adicionar pontuação
                 scoreRepository.addScoreForCompletedTask(
                     userId = userId,
                     taskId = task.taskId,
                     scoreEarned = task.scoreValue
                 )
 
-                // 2. Buscar a tarefa original
                 val taskEntity = tasksRepository.getTaskById(task.taskId)
                 if (taskEntity == null) {
                     Log.e(TAG, "❌ TaskEntity não encontrada: ${task.taskId}")
                     return@launch
                 }
 
-                // 3. Buscar progresso atual
                 val progress = tasksRepository.getOrCreateProgress(userId, task.taskId)
 
-                // 4. Atualizar progresso para 100%
                 tasksRepository.updateMissionProgress(
                     progressEntity = progress,
                     newProgressValue = taskEntity.finalPercentual.toInt(),
@@ -240,13 +244,10 @@ class EcoTasksViewModel @Inject constructor(
                 delay(300)
 
                 loadUserLevel(userId)
-                Log.d(TAG, "📊 Nível após conclusão: ${_userLevelState.value.currentLevel}, XP: ${_userLevelState.value.currentPoints}/300")
 
-                repeat(3) {
-                    _refreshTrigger.value = System.currentTimeMillis()
-                    delay(100)
-                }
-                Log.d(TAG, "🔄 UI forçada a refresh (trigger: ${_refreshTrigger.value})")
+                _refreshTrigger.value += 1
+
+                Log.d(TAG, "📊 Nível após conclusão: ${_userLevelState.value.currentLevel}, XP: ${_userLevelState.value.currentPoints}/300")
 
                 delay(200)
 
@@ -254,7 +255,6 @@ class EcoTasksViewModel @Inject constructor(
                 _showCongratulationsDialog.value = true
 
                 Log.d(TAG, "🎉 Tarefa ${task.taskId} completada com sucesso!")
-                Log.d(TAG, "📈 Estado final: Nível ${_userLevelState.value.currentLevel} | ${_userLevelState.value.currentPoints}/${_userLevelState.value.pointsToNextLevel} XP")
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Erro ao completar tarefa: ${e.message}")
                 e.printStackTrace()
@@ -262,7 +262,6 @@ class EcoTasksViewModel @Inject constructor(
         }
     }
 
-    // ✅ Função para fechar diálogo
     fun dismissCongratulationsDialog() {
         _showCongratulationsDialog.value = false
         _lastCompletedTask.value = null
@@ -270,9 +269,9 @@ class EcoTasksViewModel @Inject constructor(
 
     fun forceRefresh() {
         viewModelScope.launch {
-            _refreshTrigger.value = System.currentTimeMillis()
+            _refreshTrigger.value += 1
             _currentUserId.value?.let { loadUserLevel(it) }
-            Log.d(TAG, "🔄 Refresh manual acionado")
+            Log.d(TAG, "🔄 Refresh manual (trigger=${_refreshTrigger.value})")
         }
     }
 
@@ -298,13 +297,12 @@ class EcoTasksViewModel @Inject constructor(
                 Log.d(TAG, "📝 Inserindo tarefas no banco...")
 
                 val tasksToInsert = listOf(
-                    // BÁSICO
                     TasksEntity(
                         description = "Use uma ecobag ou sacola reutilizável em suas compras",
                         missionTitle = "Usar ecobag/sacola reutilizável",
                         finalPercentual = 100f,
                         missionType = "Resíduos",
-                        missionStatus = "Básico", // ✅ Corrigido
+                        missionStatus = "Básico",
                         rewardPoints = 7,
                         initialProgressValue = 0f,
                         durationInDays = 0,
@@ -315,7 +313,7 @@ class EcoTasksViewModel @Inject constructor(
                         missionTitle = "Fechar torneira ao escovar dentes",
                         finalPercentual = 100f,
                         missionType = "Água",
-                        missionStatus = "Básico", // ✅ Corrigido
+                        missionStatus = "Básico",
                         rewardPoints = 6,
                         initialProgressValue = 0f,
                         durationInDays = 0,
@@ -326,20 +324,18 @@ class EcoTasksViewModel @Inject constructor(
                         missionTitle = "Separar lixo reciclável",
                         finalPercentual = 100f,
                         missionType = "Resíduos",
-                        missionStatus = "Básico", // ✅ Corrigido
+                        missionStatus = "Básico",
                         rewardPoints = 10,
                         initialProgressValue = 0f,
                         durationInDays = 0,
                         resetFrequency = "Diário"
                     ),
-
-                    // INTERMEDIÁRIO
                     TasksEntity(
                         description = "Use bicicleta, transporte público ou vá a pé",
                         missionTitle = "Mobilidade sustentável",
                         finalPercentual = 100f,
                         missionType = "Mobilidade",
-                        missionStatus = "Intermediário", // ✅ Corrigido
+                        missionStatus = "Intermediário",
                         rewardPoints = 20,
                         initialProgressValue = 0f,
                         durationInDays = 0,
@@ -350,7 +346,7 @@ class EcoTasksViewModel @Inject constructor(
                         missionTitle = "Trocar lâmpada por LED",
                         finalPercentual = 100f,
                         missionType = "Energia",
-                        missionStatus = "Intermediário", // ✅ Corrigido
+                        missionStatus = "Intermediário",
                         rewardPoints = 15,
                         initialProgressValue = 0f,
                         durationInDays = 0,
@@ -361,7 +357,7 @@ class EcoTasksViewModel @Inject constructor(
                         missionTitle = "Educação ambiental",
                         finalPercentual = 100f,
                         missionType = "Conscientização",
-                        missionStatus = "Intermediário", // ✅ Corrigido
+                        missionStatus = "Intermediário",
                         rewardPoints = 30,
                         initialProgressValue = 0f,
                         durationInDays = 0,
@@ -372,7 +368,7 @@ class EcoTasksViewModel @Inject constructor(
                         missionTitle = "Doar item não utilizado",
                         finalPercentual = 100f,
                         missionType = "Consumo",
-                        missionStatus = "Intermediário", // ✅ Corrigido
+                        missionStatus = "Intermediário",
                         rewardPoints = 25,
                         initialProgressValue = 0f,
                         durationInDays = 0,
@@ -389,7 +385,7 @@ class EcoTasksViewModel @Inject constructor(
                 val finalCount = tasksRepository.getAllTasks().first().size
                 Log.d(TAG, "✅ $finalCount tarefas inseridas com sucesso!")
 
-                _refreshTrigger.value = System.currentTimeMillis()
+                _refreshTrigger.value += 1
 
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Erro ao popular banco: ${e.message}")

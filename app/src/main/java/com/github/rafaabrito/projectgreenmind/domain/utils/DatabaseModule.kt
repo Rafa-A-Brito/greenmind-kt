@@ -3,11 +3,13 @@ package com.github.rafaabrito.projectgreenmind.domain.utils
 import android.content.Context
 import androidx.room.Room
 import com.github.rafaabrito.projectgreenmind.data.db.GreenMindDatabase
+import com.github.rafaabrito.projectgreenmind.data.repository.StreakRepository
 import com.github.rafaabrito.projectgreenmind.domain.dao.CredentialsDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.FilesDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.LocalEcoDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.ScoreDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.ScoreProgressDao
+import com.github.rafaabrito.projectgreenmind.domain.dao.StreakDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.SustentabilityBannerDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.TasksDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.TasksProgressDao
@@ -32,10 +34,15 @@ object DatabaseModule {
             context.applicationContext,
             GreenMindDatabase::class.java,
             "greenmind_db"
-        ).build()
+        ).fallbackToDestructiveMigration(true)
+            .build()
     }
 
     // Provedores de DAO para injeção
+    @Provides
+    fun provideStreakDao(database: GreenMindDatabase): StreakDao {
+        return database.streakDao()
+    }
     @Provides
     fun provideUserDao(database: GreenMindDatabase): UserDao { return database.userDao()}
 
@@ -61,4 +68,9 @@ object DatabaseModule {
 
     @Provides
     fun provideTasksProgressDao(database: GreenMindDatabase): TasksProgressDao {return database.tasksProgressDao()}
+    @Provides
+    fun provideStreakRepository(
+        streakDao: StreakDao
+    ): StreakRepository = StreakRepository(streakDao)
+
 }

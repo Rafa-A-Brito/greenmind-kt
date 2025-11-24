@@ -41,7 +41,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import com.github.rafaabrito.projectgreenmind.domain.utils.auth.AuthService
 import com.github.rafaabrito.projectgreenmind.ui.components.DrawerContainer
-import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 @Suppress("DEPRECATION")
@@ -84,7 +83,6 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(isReady) {
                     if (isReady && !permissionsRequested) {
                         if (!permissionsManager.permissionsState.allPermissionsGranted) {
-                            // delay(300)
                             permissionsManager.requestAllPermissions()
                             permissionsRequested = true
                             Log.d(TAG, "🔒 Solicitando permissões...")
@@ -188,6 +186,14 @@ class MainActivity : ComponentActivity() {
                 val mainAppNavController = rememberNavController()
                 val userState by mainViewModel.userState.collectAsStateWithLifecycle()
 
+                val navigateToSettingsAction = {
+                    mainAppNavController.navigate(SettingsRoute)
+                }
+
+                val navigateToAboutAction = {
+                    mainAppNavController.navigate(AboutRoute)
+                }
+
                 val signOutAction = {
                     onSignOut()
                     mainViewModel.clearUserData()
@@ -200,7 +206,10 @@ class MainActivity : ComponentActivity() {
                     mainAppNavController = mainAppNavController,
                     userName = userState.userName,
                     userPhotoUrl = userState.photoUrl,
-                    isLoadingUserData = userState.isLoading
+                    isLoadingUserData = userState.isLoading,
+                    onSignOut = signOutAction,
+                    onNavigateToSettings = navigateToSettingsAction,
+                    onNavigateToAbout = navigateToAboutAction
                 ) { paddingValues ->
                     NavHost(
                         navController = mainAppNavController,
@@ -213,21 +222,11 @@ class MainActivity : ComponentActivity() {
                         composable(NavigationBarItems.Local.route) {
                             EcoScreen()
                         }
-                        composable(NavigationBarItems.Trophy.route) {
-                            RankingScreen(
-                                onNavigateToTasks = {
-                                    mainAppNavController.navigate("EcoTasksRoute") {
-                                        popUpTo(NavigationBarItems.Trophy.route) { inclusive = false }
-                                        launchSingleTop = true
-                                    }
-                                }
-                            )
-                        }
-                        composable("EcoTasksRoute") {
+
+                        composable(NavigationBarItems.Trophy.route) { // "eco_tasks"
                             EcoTasksScreen(
                                 onNavigateToRanking = {
-                                    mainAppNavController.navigate(NavigationBarItems.Trophy.route) {
-                                        popUpTo(NavigationBarItems.Trophy.route) { inclusive = true }
+                                    mainAppNavController.navigate("ranking") {
                                         launchSingleTop = true
                                     }
                                 },
@@ -236,13 +235,53 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        composable(NavigationBarItems.Trophy.route) { // "eco_tasks"
+                            EcoTasksScreen(
+                                onNavigateToRanking = {
+                                    mainAppNavController.navigate("ranking") {
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onBackClick = {
+                                    mainAppNavController.popBackStack()
+                                }
+                            )
+                        }
+
+                        // ✅ Rota Ranking (acessível de EcoTasks)
+                        composable("ranking") {
+                            RankingScreen(
+                                onNavigateToTasks = {
+                                    mainAppNavController.navigate("eco_tasks") {
+                                        popUpTo("eco_tasks") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            )
+                        }
+
                         composable(NavigationBarItems.Community.route) {
                             CommunityScreen()
                         }
                         composable(NavigationBarItems.Person.route) {
                             ProfileScreen(
                                 onSignOut = signOutAction,
-                                onNavigateToSettings = {}
+                                onNavigateToSettings = navigateToSettingsAction
+                            )
+                        }
+                        composable<SettingsRoute> {
+                            SettingsScreen(
+                                onBackClick = {
+                                    mainAppNavController.popBackStack()
+                                }
+                            )
+                        }
+                        composable<AboutRoute> {
+                            AboutProjectScreen(
+                                onBackClick = {
+                                    mainAppNavController.popBackStack()
+                                }
                             )
                         }
                     }
@@ -272,6 +311,9 @@ fun MainScreen(
     userName: String? = null,
     userPhotoUrl: String? = null,
     isLoadingUserData: Boolean = false,
+    onSignOut: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     content: @Composable (paddingValues: PaddingValues) -> Unit
 ) {
     var isDrawerOpen by remember { mutableStateOf(false) }
@@ -303,7 +345,10 @@ fun MainScreen(
             },
             userName = userName,
             userPhotoUrl = userPhotoUrl,
-            isLoadingUserData = isLoadingUserData
+            isLoadingUserData = isLoadingUserData,
+            onSignOut = onSignOut,
+            onNavigateToSettings = onNavigateToSettings,
+            onNavigateToAbout = onNavigateToAbout
         ) { combinedPadding ->
             content(combinedPadding)
         }
@@ -312,13 +357,24 @@ fun MainScreen(
 
 @Serializable
 object Login
+
 @Serializable
 object Register
+
 @Serializable
 object RankingRoute
+
 @Serializable
 object EcoTasksRoute
+
+@Serializable
+object SettingsRoute
+
 @Serializable
 object Presentation
+
+@Serializable
+object AboutRoute
+
 @Serializable
 object MainAppGraph

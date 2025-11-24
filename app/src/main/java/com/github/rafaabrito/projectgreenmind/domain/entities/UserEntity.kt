@@ -12,6 +12,6 @@ data class UserEntity (
     @PrimaryKey(autoGenerate = true) val  userId: Int = 0,
     @ColumnInfo(name="name") val name: String?,
     @ColumnInfo(name="email") val email: String,
-    @ColumnInfo(name = "firebaseUid") val firebaseUid: String,
+    @ColumnInfo(name = "firebaseUid") val firebaseUid: String?,
     @ColumnInfo(name="hashPassword") val hashPassword: String?,
 )

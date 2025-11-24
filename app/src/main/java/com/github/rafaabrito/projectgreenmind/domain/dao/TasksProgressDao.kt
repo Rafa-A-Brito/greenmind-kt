@@ -11,18 +11,19 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TasksProgressDao {
 
-    //  Inserção do progresso inicial ou novo registro
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProgress(progress: TasksProgressEntity)
 
-    //  Atualização de progresso da tarefa
     @Update
     suspend fun updateProgress(progress: TasksProgressEntity)
 
-    // Busca o progresso de uma tarefa específica para um usuário.
-    @Query("SELECT * FROM tasks_progress WHERE userId = :userId AND missionId = :missionId LIMIT 1")
-    fun getProgressByMission(userId: Int, missionId: Int): Flow<TasksProgressEntity?>
-    // Busca todas as tarefas que estão em um determinado status para um usuário
+    @Query("SELECT * FROM tasks_progress WHERE userId = :userId AND taskId = :taskId LIMIT 1")
+    fun getProgressByMission(userId: Int, taskId: Int): Flow<TasksProgressEntity?>
+
     @Query("SELECT * FROM tasks_progress WHERE userId = :userId AND missionStatus = :status ORDER BY lastUpdated DESC")
     fun getTasksByStatus(userId: Int, status: String): Flow<List<TasksProgressEntity>>
+
+    // Método para buscar TODAS as progressões do usuário
+    @Query("SELECT * FROM tasks_progress WHERE userId = :userId")
+    fun getAllProgressByUser(userId: Int): Flow<List<TasksProgressEntity>>
 }

@@ -320,7 +320,7 @@ class EcoViewModel @Inject constructor(
                     LocalEcoEntity(
                         lat =  -23.419675954409175, long =  -46.52049088978411, // -23.419675954409175, -46.52049088978411
                         localName = "Ecoponto Jardim Adriana",
-                        street = " Rua Valter Pereira de Lima,",
+                        street = " Rua Valter Pereira de Lima",
                         numero = "105",
                         neighborhood = "Vila Sítio dos Morros",
                         city = "Guarulhos",

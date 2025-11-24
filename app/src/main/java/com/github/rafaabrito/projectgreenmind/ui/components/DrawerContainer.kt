@@ -38,6 +38,9 @@ fun DrawerContainer(
     userName: String? = null,
     userPhotoUrl: String? = null,
     isLoadingUserData: Boolean = false,
+    onSignOut: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     content: @Composable (innerPadding: PaddingValues) -> Unit
 ) {
     var drawerState by remember { mutableStateOf(CustomDrawerState.Closed) }
@@ -78,7 +81,10 @@ fun DrawerContainer(
                 },
                 userName = userName,
                 userPhotoUrl = userPhotoUrl,
-                isLoading = isLoadingUserData
+                isLoading = isLoadingUserData,
+                onSignOut = onSignOut,
+                onNavigateToSettings = onNavigateToSettings,
+                onNavigateToAbout = onNavigateToAbout
             )
         }
 

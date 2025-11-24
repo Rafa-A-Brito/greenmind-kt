@@ -467,7 +467,7 @@ fun EcoTasksSearchBar(
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "Search",
-            tint = Color.Gray,
+            tint = Color.White,
             modifier = Modifier.size(24.dp)
         )
 

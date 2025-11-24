@@ -190,7 +190,7 @@ fun CommunitySearchBar(
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "Search",
-            tint = Color.Gray,
+            tint = Color.White,
             modifier = Modifier.size(24.dp)
         )
 
@@ -476,19 +476,6 @@ fun CommunityUserKeyboard(
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Câmera",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    // Botão Anexar
-                    IconButton(
-                        onClick = onAttachImage,
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddCircle,
-                            contentDescription = "Anexar",
                             tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )

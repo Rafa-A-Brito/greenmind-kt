@@ -18,23 +18,23 @@ import androidx.room.ForeignKey.Companion.CASCADE
         ForeignKey(
             entity = TasksEntity::class,
             parentColumns = ["taskId"],
-            childColumns = ["missionId"],
+            childColumns = ["taskId"],
             onDelete = ForeignKey.CASCADE
         )
     ],
     indices = [
         Index(value = ["userId"]),
-        Index(value = ["missionId"])
+        Index(value = ["taskId"])
     ]
 )
 data class TasksProgressEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "userId") val userId: Int,
-    @ColumnInfo(name = "missionId") val missionId: Int,
+    @ColumnInfo(name = "taskId") val taskId: Int,
     @ColumnInfo(name = "missionStatus") val missionStatus: String,
-    @ColumnInfo(name = "currentProgress") val currentProgress: Int,
-    @ColumnInfo(name = "startDate") val startDate: Long, // Timestamp de início
-    @ColumnInfo(name = "lastUpdated") val lastUpdated: Long, // Timestamp da última alteração
+    @ColumnInfo(name = "currentProgress") val currentProgress: Float,
+    @ColumnInfo(name = "startDate") val startDate: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "lastUpdated") val lastUpdated: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "attemptsCount") val attemptsCount: Int = 0,
-    @ColumnInfo(name = "finishingDate") val finishingDate: Long? = null, // Melhor usar Long e permitir Nullable
+    @ColumnInfo(name = "finishingDate") val finishingDate: Long? = null
 )

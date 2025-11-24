@@ -32,6 +32,7 @@ import coil.compose.AsyncImage
 import com.github.rafaabrito.projectgreenmind.data.model.navdDrawer.NavigationItem
 import com.github.rafaabrito.projectgreenmind.R
 import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGrayBlue
+import com.github.rafaabrito.projectgreenmind.ui.theme.MinimumGray
 
 @Composable
 fun CustomDrawer(
@@ -40,14 +41,17 @@ fun CustomDrawer(
     onCloseClick: () -> Unit,
     userName: String? = null,
     userPhotoUrl: String? = null,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    onSignOut: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToAbout: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth(fraction = 0.6f)
             .background(DarkGrayBlue)
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -57,6 +61,8 @@ fun CustomDrawer(
         ) {
             IconButton(onClick = onCloseClick) {
                 Icon(
+                    modifier = Modifier.
+                    background(MinimumGray, CircleShape),
                     imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
                     contentDescription = "Back Arrow Icon",
                     tint = Color.White
@@ -101,11 +107,25 @@ fun CustomDrawer(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        NavigationItem.entries.toTypedArray().take(3).forEach { navigationItem ->
+        NavigationItem.entries.toTypedArray().take(2).forEach { navigationItem ->
             NavigationItemView(
                 navigationItem = navigationItem,
                 selected = navigationItem == selectedNavigationItem,
-                onClick = { onNavigationItemClick(navigationItem) }
+                onClick = {
+                    when (navigationItem) {
+                        NavigationItem.Settings -> {
+                            onCloseClick()
+                            onNavigateToSettings()
+                        }
+                        NavigationItem.About -> {
+                            onCloseClick()
+                            onNavigateToAbout()
+                        }
+                        else -> {
+                            onNavigationItemClick(navigationItem)
+                        }
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(4.dp))
         }
@@ -117,14 +137,17 @@ fun CustomDrawer(
                 selected = false,
                 onClick = {
                     when (navigationItem) {
-                        NavigationItem.Settings -> {
-                            onNavigationItemClick(NavigationItem.Settings)
+                        NavigationItem.Logout -> {
+                            onCloseClick()
+                            onSignOut()
                         }
-
                         else -> {}
                     }
                 }
             )
+            if (navigationItem != NavigationItem.Logout) {
+                Spacer(modifier = Modifier.height(4.dp))
+            }
         }
         Spacer(modifier = Modifier.height(24.dp))
     }

@@ -24,6 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -71,39 +74,64 @@ fun HomeScreen(
     viewModel: MainViewModel
 ) {
     val userState by viewModel.userState.collectAsStateWithLifecycle()
+    val streakState by viewModel.streakState.collectAsStateWithLifecycle()
+    val tasksProgress by viewModel.tasksProgress.collectAsStateWithLifecycle()
+    val showStreakDialog by viewModel.showStreakDialog.collectAsStateWithLifecycle()
+    val showLevelUpDialog by viewModel.showLevelUpDialog.collectAsStateWithLifecycle()
+    val newLevel by viewModel.newLevel.collectAsStateWithLifecycle()
 
     val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
-        viewModel.refreshUserData()
+        viewModel.performDailyCheckIn()
+        viewModel.loadUserData()
     }
+    Box(modifier = Modifier.fillMaxSize()) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(15.dp)
-            .background(White)
-            .verticalScroll(scrollState)
-    ){
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp)
+                .background(White)
+                .verticalScroll(scrollState)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        TopSection(
-            userName = userState.user?.name,
-            userPhotoUrl = userState.photoUrl,
-            isLoading = userState.isLoading,
-            userLevel = userState.userLevel,
-            userXP = userState.userXP
-        )
+            TopSection(
+                userName = userState.user?.name,
+                userPhotoUrl = userState.photoUrl,
+                isLoading = userState.isLoading,
+                userLevel = userState.userLevel,
+                userXP = userState.userXP,
+                currentStreak = streakState.currentStreak,
+                completedTasksPercentage = tasksProgress.completedPercentage
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        MiddleSection()
-        Spacer(modifier = Modifier.height(16.dp))
+            MiddleSection()
+            Spacer(modifier = Modifier.height(16.dp))
 
-        BottomSection(
-            userXP = userState.userXP,
-            userLevel = userState.userLevel
-        )
+            BottomSection(
+                userXP = userState.userXP,
+                userLevel = userState.userLevel
+            )
+            if (showStreakDialog) {
+                StreakDialog(
+                    streakDays = streakState.currentStreak,
+                    isNewRecord = streakState.isNewRecord,
+                    onDismiss = { viewModel.dismissStreakDialog() }
+                )
+            }
+
+            // ✅ Dialog de Level Up
+            if (showLevelUpDialog) {
+                LevelUpDialog(
+                    newLevel = newLevel,
+                    onDismiss = { viewModel.dismissLevelUpDialog() }
+                )
+            }
+        }
     }
 }
 
@@ -113,7 +141,9 @@ fun TopSection(
     userPhotoUrl: String? = null,
     isLoading: Boolean = false,
     userLevel: Int = 0,
-    userXP: Int = 0
+    userXP: Int = 0,
+    currentStreak: Int = 0,
+    completedTasksPercentage: Float = 0f
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -144,7 +174,6 @@ fun TopSection(
             }
         }
 
-        // ✅ MUDANÇA 4: Nível e XP agora vêm do Room
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -183,6 +212,42 @@ fun TopSection(
 
     Spacer(modifier = Modifier.height(16.dp))
 
+    if (isLoading) {
+        AchievementCardsSkeleton()
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(StrongGreen)
+                .padding(5.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            AchievementCard(
+                title = "Pontos",
+                value = "$userXP XP",
+                icon = R.drawable.trophy,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            AchievementCard(
+                title = "Ofensiva (streak)",
+                value = "$currentStreak dias",
+                icon = R.drawable.fire,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            AchievementCard(
+                title = "Desafios concluídos",
+                value = "${(completedTasksPercentage * 100).toInt()}%",
+                icon = R.drawable.medal_v2,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun AchievementCardsSkeleton() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,25 +255,41 @@ fun TopSection(
             .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        AchievementCard(
-            title = "Pontos",
-            value = "$userXP XP",
-            icon = R.drawable.trophy,
-            modifier = Modifier.weight(1f)
+        repeat(3) { index ->
+            AchievementCardSkeleton(modifier = Modifier.weight(1f))
+            if (index < 2) Spacer(modifier = Modifier.width(10.dp))
+        }
+    }
+}
+
+@Composable
+fun AchievementCardSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.LightGray)
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        AchievementCard(
-            title = "Ofensiva (streak)",
-            value = "0 dias",
-            icon = R.drawable.fire,
-            modifier = Modifier.weight(1f)
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .height(12.dp)
+                .background(Color.LightGray, RoundedCornerShape(4.dp))
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        AchievementCard(
-            title = "Desafios concluídos",
-            value = "0%",
-            icon = R.drawable.medal_v2,
-            modifier = Modifier.weight(1f)
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(14.dp)
+                .background(Color.LightGray, RoundedCornerShape(4.dp))
         )
     }
 }
@@ -260,47 +341,189 @@ fun AchievementCard(
     icon: Int,
     modifier: Modifier = Modifier
 ) {
-        Column(
-            modifier = modifier
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(White)
-                .padding(5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(GreenCyanLight)
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            // Ícone
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(GreenCyanLight)
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(icon),
-                    contentDescription = title,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = title,
-                fontSize = 14.sp,
-                fontFamily = Roboto,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = value,
-                fontSize = 16.sp,
-                fontFamily = Roboto,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF26B6AF),
-                textAlign = TextAlign.Center
+            Image(
+                painter = painterResource(icon),
+                contentDescription = title,
+                modifier = Modifier.fillMaxSize()
             )
         }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = title,
+            fontSize = 14.sp,
+            fontFamily = Roboto,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            fontFamily = Roboto,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF26B6AF),
+            textAlign = TextAlign.Center
+        )
     }
+}
+
+@Composable
+fun StreakDialog(
+    streakDays: Int,
+    isNewRecord: Boolean,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(R.drawable.fire),
+                    contentDescription = "Streak",
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (streakDays == 1) "Bem-vindo de volta!" else "Ofensiva Mantida!",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Inter,
+                    color = OutGreen
+                )
+            }
+        },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Você está em dia! 🎉",
+                    fontSize = 18.sp,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "$streakDays ${if (streakDays == 1) "dia" else "dias"} consecutivos!",
+                    fontSize = 32.sp,
+                    fontFamily = Micro5,
+                    fontWeight = FontWeight.Bold,
+                    color = OutGreen,
+                    textAlign = TextAlign.Center
+                )
+                if (isNewRecord) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "🏆 Novo Recorde!",
+                        fontSize = 16.sp,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFFD700)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Continue assim para aprender ainda mais sobre sustentabilidade! 🌱",
+                    fontSize = 14.sp,
+                    fontFamily = Inter,
+                    textAlign = TextAlign.Center,
+                    color = Color.Gray
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = OutGreen),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Continuar", fontFamily = Inter, fontSize = 16.sp)
+            }
+        }
+    )
+}
+
+@Composable
+fun LevelUpDialog(
+    newLevel: Int,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(R.drawable.medal),
+                    contentDescription = "Level Up",
+                    modifier = Modifier.size(80.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Parabéns! 🎊",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Inter,
+                    color = OutGreen
+                )
+            }
+        },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Você subiu de nível!",
+                    fontSize = 18.sp,
+                    fontFamily = Inter,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "NÍVEL $newLevel",
+                    fontSize = 48.sp,
+                    fontFamily = Micro5,
+                    fontWeight = FontWeight.Bold,
+                    color = OutGreen
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Continue completando desafios para evoluir ainda mais! 💪",
+                    fontSize = 14.sp,
+                    fontFamily = Inter,
+                    textAlign = TextAlign.Center,
+                    color = Color.Gray
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = OutGreen),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Incrível!", fontFamily = Inter, fontSize = 16.sp)
+            }
+        }
+    )
+}
 
 @Composable
 fun MiddleSection() {
@@ -317,7 +540,7 @@ fun MiddleSection() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Dicas semanais",
+                text = "Notícias",
                 color = Black,
                 fontFamily = Inter,
                 fontWeight = FontWeight.SemiBold,
@@ -355,35 +578,7 @@ fun MiddleSection() {
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Row(
-            modifier = Modifier
-                .width(280.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
-                .padding(3.dp)
-                .clickable { /* Ação de marcar conclusão */ },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                modifier = Modifier.
-                    padding(horizontal = 6.dp),
-                imageVector = Icons.Default.CheckCircleOutline,
-                contentDescription = "Marcar conclusão",
-                tint = GreenCyanLight
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text(
-                    text = "Marcar conclusão (+ 25XP)",
-                    color = White,
-                    fontFamily = Roboto,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
+        // slider de banner
     }
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -449,7 +644,6 @@ fun QuickActionCard(
                 .padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Ícone com fundo arredondado
             Box(
                 modifier = Modifier
                     .size(40.dp)

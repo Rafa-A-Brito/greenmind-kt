@@ -13,6 +13,7 @@ import com.github.rafaabrito.projectgreenmind.domain.dao.FilesDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.LocalEcoDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.ScoreDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.ScoreProgressDao
+import com.github.rafaabrito.projectgreenmind.domain.dao.StreakDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.SustentabilityBannerDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.TasksDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.TasksProgressDao
@@ -21,6 +22,7 @@ import com.github.rafaabrito.projectgreenmind.domain.entities.FilesEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.LocalEcoEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.ScoreEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.ScoreProgressEntity
+import com.github.rafaabrito.projectgreenmind.domain.entities.StreakEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.SustentabilityBanner
 import com.github.rafaabrito.projectgreenmind.domain.entities.TasksEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.TasksProgressEntity
@@ -35,11 +37,13 @@ import com.github.rafaabrito.projectgreenmind.domain.entities.UserEntity
     SustentabilityBanner::class,
     TasksEntity::class,
     TasksProgressEntity::class,
-    UserEntity::class
-], version = 2)
+    UserEntity::class,
+    StreakEntity::class
+], version = 3, exportSchema = true)
 
 @TypeConverters(Converters::class)
 abstract class GreenMindDatabase: RoomDatabase(){
+    abstract fun streakDao(): StreakDao
 
     abstract fun userDao(): UserDao
     abstract fun credentialsDao(): CredentialsDao

@@ -31,7 +31,6 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch {
             val request = authService.getGoogleIdCredentialRequest()
             if (request != null) {
-                // O VM notifica a UI para iniciar o CredentialManager com este request
                 _registerState.value = RegisterState.AwaitingSocialAuth(request)
             } else {
                 _registerState.value = RegisterState.Error("Falha ao criar requisição de registro do Google.")
@@ -84,13 +83,11 @@ class RegisterViewModel @Inject constructor(
         _registerState.value = RegisterState.Loading
         viewModelScope.launch {
             try {
-                // 🚨 ALERTA: Seu 'createNewUser' DEVE retornar UserEntity? ou User?
-                // Assumindo que agora retorna UserEntity?
                 val userEntity = userRepository.createNewUser(name, email, password)
 
                 if (userEntity != null) {
                     val userModel = userEntity.toDomainModel()
-                    _registerState.value = RegisterState.Success(userModel) // 🚨 CORRIGIDO (Linha ~81)
+                    _registerState.value = RegisterState.Success(userModel)
                 } else {
                     _registerState.value = RegisterState.Error("O email já está em uso.")
                 }

@@ -1,5 +1,6 @@
 package com.github.rafaabrito.projectgreenmind.data.model.navdDrawer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -11,16 +12,12 @@ enum class NavigationItem(
         title = "Configurações",
         icon = Icons.Default.Settings
     ),
-    Support(
-        title = "Suporte",
-        icon = Icons.Default.Phone
-    ),
     About(
         title = "Sobre o App",
         icon = Icons.Default.Info
     ),
     Logout(
         title = "Log Out",
-        icon = Icons.Default.Logout
+        icon = Icons.AutoMirrored.Filled.Logout
     )
 }

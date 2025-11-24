@@ -56,6 +56,7 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.ScreenOrientation
 import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import com.github.rafaabrito.projectgreenmind.data.model.User
 import androidx.credentials.CredentialManager
 import androidx.credentials.exceptions.GetCredentialException
@@ -292,7 +293,6 @@ private fun LoginSection(
     isLoading: Boolean,
     isButtonEnabled: Boolean
 ) {
-    // 1. Campo de Email
     LoginTextField(
         value = email,
         onValueChange = onEmailChange,
@@ -304,17 +304,29 @@ private fun LoginSection(
     )
     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
 
-    // 2. Campo de Senha
     LoginTextField(
         value = password,
         onValueChange = onPasswordChange,
         label = "Senha",
-        trailing = "Esqueceu a senha?",
+        trailing = "",
         isPassword = true,
         keyboardType = KeyboardType.Password,
         enabled = !isLoading,
         modifier = Modifier.fillMaxWidth()
     )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Text(
+            text = "Esqueceu a senha?",
+            color = Color.Gray,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier
+                .padding(top = 4.dp, end = 4.dp)
+                .clickable { /* AÇÃO: navHostController.navigate(PasswordChange) */ }
+        )
+    }
     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
 
     // 3. Botão de Login
