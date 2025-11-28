@@ -8,7 +8,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "scoreProgressEntity",
+    tableName = "score_progress",
     foreignKeys = [
         ForeignKey(
             entity = UserEntity::class,
@@ -34,7 +34,8 @@ data class ScoreProgressEntity(
     @PrimaryKey(autoGenerate = true) val id : Int = 0,
     @ColumnInfo(name="userId") val userId: Int,
     @ColumnInfo(name="taskId") val taskId: Int,
-    // Campos Adicionados
     @ColumnInfo(name="scoreEarned") val scoreEarned: Int, // Pontuação ganha por completar esta tarefa
-    @ColumnInfo(name="isCompleted") val isCompleted: Boolean = false // Status de conclusão da tarefa
+    @ColumnInfo(name="isCompleted") val isCompleted: Boolean = false, // Status de conclusão da tarefa
+    @ColumnInfo(name = "dateEarned") val dateEarned: Long = System.currentTimeMillis()
+
 )

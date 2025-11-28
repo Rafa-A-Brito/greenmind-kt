@@ -1,19 +1,21 @@
 package com.github.rafaabrito.projectgreenmind.data.repository
 
+import android.util.Log
 import com.github.rafaabrito.projectgreenmind.domain.dao.ScoreDao
 import com.github.rafaabrito.projectgreenmind.domain.dao.ScoreProgressDao
 import com.github.rafaabrito.projectgreenmind.domain.entities.ScoreEntity
 import com.github.rafaabrito.projectgreenmind.domain.entities.ScoreProgressEntity
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
-class ScoreRepository(
+class ScoreRepository @Inject constructor(
     private val scoreDao: ScoreDao,
     private val scoreProgressDao: ScoreProgressDao
 ) {
+    private val TAG = "ScoreRepository"
 
     // Retorna a pontuação total e nível do usuário logado (observável).
-
     fun getScoreByUserId(userId: Int): Flow<ScoreEntity?> {
         return scoreDao.getScoreByUserId(userId)
     }
@@ -43,33 +45,43 @@ class ScoreRepository(
                 isCompleted = true
             )
             scoreProgressDao.updateProgress(updatedProgress)
+            Log.d(TAG, "✅ Tarefa atualizada para completa: +$scoreEarned XP")
         } else {
+            Log.w(TAG, "⚠️ Tarefa $taskId já estava completa")
             return
         }
 
-        val newTotalScore = scoreProgressDao.getTotalScoreForUser(userId).first() ?: 0
+        val newTotalScore = scoreProgressDao.getTotalScoreForUserDirect(userId)
 
         val currentScoreEntity = scoreDao.getScoreByUserId(userId).first()
 
-        val finalScoreEntity = currentScoreEntity?.// Atualiza registro existente
-        copy(
+        val finalScoreEntity = currentScoreEntity?.copy(
             totalScore = newTotalScore,
             scoreLevel = calculateLevel(newTotalScore),
-            missionScore = scoreEarned // Pontuação da última missão
+            missionScore = scoreEarned
+        ) ?: ScoreEntity(
+            userId = userId,
+            totalScore = newTotalScore,
+            scoreLevel = calculateLevel(newTotalScore),
+            missionScore = scoreEarned
         )
-            ?: // Cria novo registro (primeira pontuação)
-            ScoreEntity(
-                userId = userId,
-                totalScore = newTotalScore,
-                scoreLevel = calculateLevel(newTotalScore), // Cálculo de nível
-                missionScore = scoreEarned
-            )
 
-        scoreDao.updateScore(finalScoreEntity)
+        scoreDao.updateScore(finalScoreEntity.copy(totalScore = newTotalScore))
+        Log.d(TAG, "✅ ScoreEntity atualizada: Level ${finalScoreEntity.scoreLevel}, Total: ${finalScoreEntity.totalScore}")
     }
 
     private fun calculateLevel(totalScore: Int): Int {
-        // Exemplo: 1000 pontos por nível
-        return (totalScore / 1000) + 1
+        return (totalScore / 300) + 1
+    }
+
+    suspend fun getTotalScoreByUserId(userId: Int): Int {
+        return try {
+            val total = scoreProgressDao.getTotalScoreForUserDirect(userId)
+            Log.d(TAG, "📊 Total calculado da ScoreProgress: $total XP")
+            total
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Erro ao calcular total: ${e.message}")
+            0
+        }
     }
 }

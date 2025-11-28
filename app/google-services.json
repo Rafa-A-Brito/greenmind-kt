@@ -14,8 +14,12 @@
       },
       "oauth_client": [
         {
-          "client_id": "658883004327-5nbanf9gutau33frivg5gv1i6picm2r0.apps.googleusercontent.com",
-          "client_type": 3
+          "client_id": "658883004327-59gect4191p3qv5jq537fnht3t4tp0m8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.rafaabrito.projectgreenmind",
+            "certificate_hash": "531cdbac6e69953bd0a04c9b50d1356f23f41e23"
+          }
         }
       ],
       "api_key": [
@@ -27,7 +31,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "658883004327-5nbanf9gutau33frivg5gv1i6picm2r0.apps.googleusercontent.com",
+              "client_id": "658883004327-morl82isuej90bfc5827kc9nk1ulakhe.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

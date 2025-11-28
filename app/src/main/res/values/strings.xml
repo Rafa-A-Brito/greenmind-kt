@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">Project GreenMind</string>
+    <string name="app_name">GreenMind</string>
     <string name="app_logo">App Logo</string>
     <string name="title_project">GreenMind</string>
     <string name="slogan_project">Inove. Aprenda. Aperfeiçoe</string>
     <string name="login_txt">Login</string>
     <string name="register_txt">Cadastro</string>
-    <string name="default_web_client_id">658883004327-5nbanf9gutau33frivg5gv1i6picm2r0.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">658883004327-morl82isuej90bfc5827kc9nk1ulakhe.apps.googleusercontent.com</string>
 </resources>

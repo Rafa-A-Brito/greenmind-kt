@@ -33,30 +33,41 @@ class LocalEcoRepository @Inject constructor(
     }
 
     suspend fun geocodeAndSaveLocalEco(address: String, name: String): LocalEcoEntity? {
-
         val coordinates = osmService.getCoordinatesForAddress(address)
+
+        val ecoDetails = coordinates?.let {
+            osmService.getEcoDetailsForCoordinates(
+                it.lat,
+                it.long
+            )
+        } ?: getFallbackEcoDetails()
+
+        val street = ecoDetails.street
+        val numero = ecoDetails.numero
+        val city = ecoDetails.city
 
         if (coordinates != null) {
 
-            val ecoDetails = osmService.getEcoDetailsForCoordinates(
-                coordinates.lat,
-                coordinates.long
-            ) ?: getFallbackEcoDetails()
+            val newEntity: LocalEcoEntity? = if (street != null && numero != null && city != null) {
+                LocalEcoEntity(
+                    lat = coordinates.lat,
+                    long = coordinates.long,
+                    localName = name,
+                    street = street,
+                    numero = numero,
+                    neighborhood = ecoDetails.neighborhood,
+                    city = city,
+                    cep = ecoDetails.cep,
+                    distance = ecoDetails.distance,
+                    recyclableTypes = ecoDetails.recyclableTypes
+                )
+            } else {
+                null
+            }
+            newEntity?.let {
+                localEcoDao.insert(it)
+            }
 
-            val newEntity = LocalEcoEntity(
-                lat = coordinates.lat,
-                long = coordinates.long,
-                localName = name,
-                street = ecoDetails.street,
-                numero = ecoDetails.numero,
-                neighborhood = ecoDetails.neighborhood,
-                city = ecoDetails.city,
-                cep = ecoDetails.cep,
-                distance = ecoDetails.distance,
-                recyclableTypes = ecoDetails.recyclableTypes
-            )
-
-            localEcoDao.insert(newEntity)
             return newEntity
         }
 

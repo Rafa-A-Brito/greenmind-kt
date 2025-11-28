@@ -1,12 +1,8 @@
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
-
-import android.media.Image
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,126 +23,138 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircleOutline
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.House
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Recycling
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Stars
-import androidx.compose.material.icons.outlined.Leaderboard
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.exyte.animatednavbar.AnimatedNavigationBar
-import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
-import com.exyte.animatednavbar.animation.indendshape.Height
-import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
-import com.github.rafaabrito.projectgreenmind.ui.theme.GrotesqueGreen
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.exyte.animatednavbar.utils.noRippleClickable
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.rafaabrito.projectgreenmind.R
-import com.github.rafaabrito.projectgreenmind.ui.components.BottomBarComponent
-import com.github.rafaabrito.projectgreenmind.ui.components.TopBarComponent
 import com.github.rafaabrito.projectgreenmind.ui.theme.Black
 import com.github.rafaabrito.projectgreenmind.ui.theme.BlackShade
 import com.github.rafaabrito.projectgreenmind.ui.theme.BrightCyanGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.CyanLime
+import com.github.rafaabrito.projectgreenmind.ui.theme.DarkGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.DarkSpringGreen
-import com.github.rafaabrito.projectgreenmind.ui.theme.ForestGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.GreenCyanLight
 import com.github.rafaabrito.projectgreenmind.ui.theme.Inter
-import com.github.rafaabrito.projectgreenmind.ui.theme.LightGreenCyan
-import com.github.rafaabrito.projectgreenmind.ui.theme.LightShadeGreen
-import com.github.rafaabrito.projectgreenmind.ui.theme.MediumBlack
 import com.github.rafaabrito.projectgreenmind.ui.theme.MediumGray
 import com.github.rafaabrito.projectgreenmind.ui.theme.Micro5
-import com.github.rafaabrito.projectgreenmind.ui.theme.MinimumGray
+import com.github.rafaabrito.projectgreenmind.ui.theme.OutGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
-import com.github.rafaabrito.projectgreenmind.ui.theme.RobotoMono
-import com.github.rafaabrito.projectgreenmind.ui.theme.SeafomGreen
 import com.github.rafaabrito.projectgreenmind.ui.theme.StrongGreen
+import com.github.rafaabrito.projectgreenmind.ui.viewModel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
-fun PlaceholderUserImage(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(50.dp)
-            .clip(CircleShape)
-            .background(Color.White)
-    ) {
-        // Ícone placeholder ou imagem real do usuário
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = "Usuário",
-            tint = Color.White,
-            modifier = Modifier.align(Alignment.Center)
-        )
-    }
-}
+fun HomeScreen(
+    viewModel: MainViewModel
+) {
+    val userState by viewModel.userState.collectAsStateWithLifecycle()
+    val streakState by viewModel.streakState.collectAsStateWithLifecycle()
+    val tasksProgress by viewModel.tasksProgress.collectAsStateWithLifecycle()
+    val showStreakDialog by viewModel.showStreakDialog.collectAsStateWithLifecycle()
+    val showLevelUpDialog by viewModel.showLevelUpDialog.collectAsStateWithLifecycle()
+    val newLevel by viewModel.newLevel.collectAsStateWithLifecycle()
 
-@Composable
-fun HomeScreen() {
     val scrollState = rememberScrollState()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(15.dp)
-            .background(White)
-            .verticalScroll(scrollState)
-    ){
-        Spacer(modifier = Modifier.height(16.dp))
 
-        TopSection()
-        Spacer(modifier = Modifier.height(16.dp))
+    LaunchedEffect(Unit) {
+        viewModel.performDailyCheckIn()
+        viewModel.loadUserData()
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
 
-        MiddleSection()
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp)
+                .background(White)
+                .verticalScroll(scrollState)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        BottomSection()
+            TopSection(
+                userName = userState.user?.name,
+                userPhotoUrl = userState.photoUrl,
+                isLoading = userState.isLoading,
+                userLevel = userState.userLevel,
+                userXP = userState.userXP,
+                currentStreak = streakState.currentStreak,
+                completedTasksPercentage = tasksProgress.completedPercentage
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            MiddleSection()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            BottomSection(
+                userXP = userState.userXP,
+                userLevel = userState.userLevel
+            )
+            if (showStreakDialog) {
+                StreakDialog(
+                    streakDays = streakState.currentStreak,
+                    isNewRecord = streakState.isNewRecord,
+                    onDismiss = { viewModel.dismissStreakDialog() }
+                )
+            }
+
+            // ✅ Dialog de Level Up
+            if (showLevelUpDialog) {
+                LevelUpDialog(
+                    newLevel = newLevel,
+                    onDismiss = { viewModel.dismissLevelUpDialog() }
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun TopSection() {
-    // Cabeçalho de Boas-vindas e Nível
+fun TopSection(
+    userName: String? = null,
+    userPhotoUrl: String? = null,
+    isLoading: Boolean = false,
+    userLevel: Int = 0,
+    userXP: Int = 0,
+    currentStreak: Int = 0,
+    completedTasksPercentage: Float = 0f
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            PlaceholderUserImage()
+            UserImage(
+                photoUrl = userPhotoUrl,
+                isLoading = isLoading
+            )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
@@ -157,7 +165,7 @@ fun TopSection() {
                     color = Color.Black
                 )
                 Text(
-                    text = "JOÃO",
+                    text = userName?.uppercase() ?: "USUÁRIO",
                     fontSize = 22.sp,
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
@@ -166,7 +174,6 @@ fun TopSection() {
             }
         }
 
-        // Nível e XP
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -181,113 +188,342 @@ fun TopSection() {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "NÍVEL 15",
+                text = "NÍVEL $userLevel",
                 fontSize = 18.sp,
                 fontFamily = Micro5,
                 fontWeight = FontWeight.Normal,
-                color = White
+                color = Color.White
             )
             Spacer(modifier = Modifier.width(8.dp))
             Image(
                 painter = painterResource(R.drawable.xp_total),
-                contentDescription = "Nível",
+                contentDescription = "XP",
                 modifier = Modifier.size(30.dp)
             )
             Text(
-                text = "4800 XP",
+                text = "$userXP XP",
                 fontSize = 18.sp,
                 fontFamily = Micro5,
                 fontWeight = FontWeight.Normal,
-                color = White
+                color = Color.White
             )
         }
     }
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Cards de Conquistas (Pontos, Ofensiva, Desafios)
+    if (isLoading) {
+        AchievementCardsSkeleton()
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(StrongGreen)
+                .padding(5.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            AchievementCard(
+                title = "Pontos",
+                value = "$userXP XP",
+                icon = R.drawable.trophy,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            AchievementCard(
+                title = "Ofensiva (streak)",
+                value = "$currentStreak dias",
+                icon = R.drawable.fire,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            AchievementCard(
+                title = "Desafios concluídos",
+                value = "${(completedTasksPercentage * 100).toInt()}%",
+                icon = R.drawable.medal_v2,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun AchievementCardsSkeleton() {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .background(StrongGreen)
             .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        AchievementCard(
-            title = "Pontos",
-            value = "38420 XP",
-            icon = Icons.Default.EmojiEvents,
-            iconTint = White,
-            modifier = Modifier.weight(1f)
+        repeat(3) { index ->
+            AchievementCardSkeleton(modifier = Modifier.weight(1f))
+            if (index < 2) Spacer(modifier = Modifier.width(10.dp))
+        }
+    }
+}
+
+@Composable
+fun AchievementCardSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.LightGray)
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        AchievementCard(
-            title = "Ofensiva (streak)",
-            value = "3 semanas",
-            icon = Icons.Default.LocalFireDepartment, // Ícone de Chama
-            iconTint = Color.Red,
-            modifier = Modifier.weight(1f)
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .height(12.dp)
+                .background(Color.LightGray, RoundedCornerShape(4.dp))
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        AchievementCard(
-            title = "Desafios concluídos",
-            value = "85%",
-            icon = Icons.Default.Stars,
-            iconTint = GreenCyanLight,
-            modifier = Modifier.weight(1f)
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(14.dp)
+                .background(Color.LightGray, RoundedCornerShape(4.dp))
         )
     }
 }
 
 @Composable
-fun AchievementCard(
-    title: String,
-    value: String,
-    icon: ImageVector,
-    iconTint: Color,
+fun UserImage(
+    photoUrl: String?,
+    isLoading: Boolean,
     modifier: Modifier = Modifier
 ) {
-        Column(
-            modifier = modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(White)
-                .padding(5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Ícone
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(LightGreenCyan)
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = iconTint,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = title,
-                fontSize = 12.sp,
-                fontFamily = Roboto,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black,
-                textAlign = TextAlign.Center
+    Box(
+        modifier = modifier
+            .size(50.dp)
+            .clip(CircleShape)
+            .background(if (isLoading) MediumGray else White)
+    ) {
+        if (isLoading) {
+            // Indicador de carregamento
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Carregando...",
+                tint = Color.Gray,
+                modifier = Modifier.align(Alignment.Center)
             )
-            Text(
-                text = value,
-                fontSize = 16.sp,
-                fontFamily = Roboto,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Blue,
-                textAlign = TextAlign.Center
+        } else if (photoUrl != null) {
+            // Usa Coil para carregar a imagem do Firebase
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = "Foto do usuário",
+                modifier = Modifier.fillMaxSize(),
+                placeholder = painterResource(R.drawable.placeholder_image),
+                error = painterResource(R.drawable.image_person_error)
+            )
+        } else {
+            // Ícone placeholder se não houver foto
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Usuário",
+                tint = Color.Gray,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
     }
+}
+@Composable
+fun AchievementCard(
+    title: String,
+    value: String,
+    icon: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(GreenCyanLight)
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = title,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = title,
+            fontSize = 14.sp,
+            fontFamily = Roboto,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            fontFamily = Roboto,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF26B6AF),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun StreakDialog(
+    streakDays: Int,
+    isNewRecord: Boolean,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(R.drawable.fire),
+                    contentDescription = "Streak",
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (streakDays == 1) "Bem-vindo de volta!" else "Ofensiva Mantida!",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Inter,
+                    color = OutGreen
+                )
+            }
+        },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Você está em dia! 🎉",
+                    fontSize = 18.sp,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "$streakDays ${if (streakDays == 1) "dia" else "dias"} consecutivos!",
+                    fontSize = 32.sp,
+                    fontFamily = Micro5,
+                    fontWeight = FontWeight.Bold,
+                    color = OutGreen,
+                    textAlign = TextAlign.Center
+                )
+                if (isNewRecord) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "🏆 Novo Recorde!",
+                        fontSize = 16.sp,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFFD700)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Continue assim para aprender ainda mais sobre sustentabilidade! 🌱",
+                    fontSize = 14.sp,
+                    fontFamily = Inter,
+                    textAlign = TextAlign.Center,
+                    color = Color.Gray
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = OutGreen),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Continuar", fontFamily = Inter, fontSize = 16.sp)
+            }
+        }
+    )
+}
+
+@Composable
+fun LevelUpDialog(
+    newLevel: Int,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(R.drawable.medal),
+                    contentDescription = "Level Up",
+                    modifier = Modifier.size(80.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Parabéns! 🎊",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Inter,
+                    color = OutGreen
+                )
+            }
+        },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Você subiu de nível!",
+                    fontSize = 18.sp,
+                    fontFamily = Inter,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "NÍVEL $newLevel",
+                    fontSize = 48.sp,
+                    fontFamily = Micro5,
+                    fontWeight = FontWeight.Bold,
+                    color = OutGreen
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Continue completando desafios para evoluir ainda mais! 💪",
+                    fontSize = 14.sp,
+                    fontFamily = Inter,
+                    textAlign = TextAlign.Center,
+                    color = Color.Gray
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = OutGreen),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Incrível!", fontFamily = Inter, fontSize = 16.sp)
+            }
+        }
+    )
+}
 
 @Composable
 fun MiddleSection() {
@@ -297,14 +533,14 @@ fun MiddleSection() {
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(CyanLime)
-            .padding(16.dp)
+            .padding(8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Dicas semanais",
+                text = "Notícias",
                 color = Black,
                 fontFamily = Inter,
                 fontWeight = FontWeight.SemiBold,
@@ -328,47 +564,21 @@ fun MiddleSection() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(2.dp)
-                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                .padding(3.dp)
+                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(5.dp))
         ) {
             Text(
-                text = "Antes de comprar, pense: eu realmente preciso disso? Praticar o consumo consciente ajuda a economizar recursos naturais, reduzir o desperdício e até poupar dinheiro. 🌿",
+                text = "Antes de comprar, pense: eu realmente preciso disso? Praticar o consumo consciente ajuda a economizar " +
+                        "recursos naturais, reduzir o desperdício e até poupar dinheiro. 🌿",
                 color = White,
                 fontFamily = Inter,
                 fontWeight = FontWeight.Medium,
-                fontSize = 16.sp
+                fontSize = 18   .sp,
+                modifier = Modifier.padding(6.dp)
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Row(
-            modifier = Modifier
-                .width(250.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(BlackShade.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
-                .padding(3.dp)
-                .clickable { /* Ação de marcar conclusão */ },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                modifier = Modifier.
-                    padding(horizontal = 6.dp),
-                imageVector = Icons.Default.CheckCircleOutline,
-                contentDescription = "Marcar conclusão",
-                tint = GreenCyanLight
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text(
-                    text = "Marcar conclusão (+ 25XP)",
-                    color = White,
-                    fontFamily = Roboto,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
+        // slider de banner
     }
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -381,7 +591,7 @@ fun MiddleSection() {
         Icon(
             imageVector = Icons.Default.Build,
             contentDescription = "Ações Rápidas",
-            tint = DarkSpringGreen,
+            tint = DarkGray,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
@@ -397,24 +607,25 @@ fun MiddleSection() {
 
     Row(
         modifier = Modifier.fillMaxWidth()
-            .background(StrongGreen),
+            .background(StrongGreen, RoundedCornerShape(10.dp))
+            .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         QuickActionCard(
             text = "Ecopontos",
-            icon = Icons.Default.LocationOn,
+            icon = R.drawable.local,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         QuickActionCard(
             text = "Registrar descarte",
-            icon = Icons.Default.Recycling,
+            icon = R.drawable.sustainable_logo,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(10.dp))
         QuickActionCard(
             text = "Desafios",
-            icon = Icons.Default.EmojiEvents,
+            icon = R.drawable.trophy_2d,
             modifier = Modifier.weight(1f)
         )
     }
@@ -423,7 +634,7 @@ fun MiddleSection() {
 @Composable
 fun QuickActionCard(
     text: String,
-    icon: ImageVector,
+    icon: Int,
     modifier: Modifier = Modifier
 ) {
         Column(
@@ -433,7 +644,6 @@ fun QuickActionCard(
                 .padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Ícone com fundo arredondado
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -442,10 +652,9 @@ fun QuickActionCard(
                     .padding(5.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
+                Image(
+                    painter = painterResource(icon),
                     contentDescription = text,
-                    tint = Color(0xFF0BA858),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -461,9 +670,12 @@ fun QuickActionCard(
         }
     }
 
+
 @Composable
-fun BottomSection() {
-    // Progresso da Semana
+fun BottomSection(
+    userXP: Int = 0,
+    userLevel: Int = 0
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -478,7 +690,12 @@ fun BottomSection() {
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    // Caixa de Progresso (XP)
+    val nextLevelXP = (userLevel + 1) * 1000
+    val currentLevelXP = userLevel * 1000
+    val xpProgress = (userXP - currentLevelXP).coerceAtLeast(0)
+    val xpNeeded = (nextLevelXP - currentLevelXP).coerceAtLeast(1)
+    val progressPercentage = (xpProgress.toFloat() / xpNeeded.toFloat()).coerceIn(0f, 1f)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -486,32 +703,47 @@ fun BottomSection() {
             .background(Color(0xFF0BA858))
             .padding(16.dp)
     ) {
-        // Título/Contador de XP
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "PONTOS",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = GreenCyanLight
-            )
-            Text(
-                text = "300/450 XP",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = White
-            )
+            Row {
+                Image(
+                    modifier = Modifier.size(35.dp),
+                    painter = painterResource(R.drawable.xp_user),
+                    contentDescription = "Xp"
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+
+                Text(
+                    text = "Pontos",
+                    fontFamily = Micro5,
+                    fontSize = 35.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 5.dp)
+                    .background(OutGreen, RoundedCornerShape(10.dp))
+            ) {
+                Text(
+                    text = "$xpProgress/$xpNeeded XP",
+                    fontSize = 30.sp,
+                    fontFamily = Micro5,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Barra de Progresso Customizada
         LinearProgressIndicatorCustom(
-            progress = 300f / 450f, // Exemplo: 300 de 450 XP
-            progressColor = BrightCyanGreen,
+            progress = progressPercentage,
+            progressColor = DarkSpringGreen,
             backgroundColor = Color(0xFF4C4D4E),
             modifier = Modifier
                 .fillMaxWidth()
@@ -521,7 +753,6 @@ fun BottomSection() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Mensagem
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -531,7 +762,7 @@ fun BottomSection() {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Complete desafios para alcançar a meta e subir de nível 👌",
+                text = "Complete desafios para alcançar a meta e subir de nível 💪",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = White,
@@ -572,5 +803,5 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
 @Preview
 @Composable
 private fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen(viewModel = viewModel())
 }

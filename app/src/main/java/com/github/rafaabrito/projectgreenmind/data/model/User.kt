@@ -9,6 +9,19 @@ data class User(
     val firebaseUid: String? = null
     )
 
+data class UserState(
+    val user: User? = null,
+    val photoUrl: String? = null,
+    val userXP: Int = 0,           // ✅ NOVO: XP do usuário
+    val userLevel: Int = 0,        // ✅ NOVO: Nível do usuário
+    val isLoading: Boolean = false,
+    val error: String? = null
+) {
+    // Helper para obter apenas o primeiro nome do usuário
+    val userName: String?
+        get() = user?.name?.split(" ")?.firstOrNull()
+}
+
 fun UserEntity.toDomainModel(): User {
     return User(
         userId = this.userId,

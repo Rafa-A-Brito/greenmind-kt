@@ -93,7 +93,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // RecylerView
     implementation(libs.androidx.recyclerview)
@@ -131,6 +131,9 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
 
+    // Firebase imagens integration
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // OSM Android
     implementation(libs.osmdroid.android)
 
@@ -152,16 +155,16 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     // Config Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation(libs.retrofit)
 
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.converter.gson)
     // Coroutines adapter
-    implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+    implementation(libs.retrofit2.kotlin.coroutines.adapter)
 
     // GMS Compose e Services
-    implementation("com.google.maps.android:maps-compose:3.0.0")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
 
     // Logging interceptor
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation(libs.logging.interceptor)
 }

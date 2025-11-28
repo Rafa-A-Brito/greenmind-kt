@@ -2,11 +2,9 @@
 
 package com.github.rafaabrito.projectgreenmind.ui.screens
 
-import android.app.Activity
 import android.content.res.Configuration
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,47 +55,101 @@ import com.github.rafaabrito.projectgreenmind.ui.theme.Roboto
 import com.github.rafaabrito.projectgreenmind.ui.theme.ScreenOrientation
 import com.github.rafaabrito.projectgreenmind.ui.theme.dimens
 import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
-
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
+import com.github.rafaabrito.projectgreenmind.data.model.User
+import androidx.credentials.CredentialManager
+import androidx.credentials.exceptions.GetCredentialException
+import kotlinx.coroutines.CancellationException
 @Composable
     fun LoginScreen(
         viewModel: LoginViewModel = hiltViewModel(),
         onLoginSuccess: (userId: Int) -> Unit,
         onNavigateToRegister: () -> Unit,
     ) {
+    val context = LocalContext.current
+    val activity = context as? androidx.activity.ComponentActivity
+
+    val credentialManager = remember(context) { CredentialManager.create(context) }
+
     val loginState by viewModel.loginState.collectAsState()
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.handleGoogleSignInResult(result.data)
-            } else {
-                viewModel.handleGoogleSignInResult(null)
-            }
-        }
-    )
 
     // Estados locais para campos
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     // Indica se o formulário está carregando
-    val isLoading = loginState is LoginViewModel.LoginState.Loading
+    val isEnabled = loginState is LoginViewModel.LoginState.Loading
 
+    // Tratamento de Sucesso e Erro do Login Local/Firebase
     LaunchedEffect(loginState) {
-        when (val state = loginState) {
+        when (loginState) {
             is LoginViewModel.LoginState.Success -> {
-                onLoginSuccess(state.user.userId) // Passa o ID do usuário
+                Toast.makeText(context, "Bem-vindo!", Toast.LENGTH_SHORT).show()
+                onLoginSuccess((loginState as LoginViewModel.LoginState.Success).user.userId)
+                viewModel.resetState()
             }
             is LoginViewModel.LoginState.Error -> {
-                // Mostrar Toast
+                Toast.makeText(context, (loginState as LoginViewModel.LoginState.Error).message, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
             }
-            // 🟢 NOVO TRATAMENTO PARA LANÇAR O INTENTSENDER
-            is LoginViewModel.LoginState.AwaitingSocialAuth -> {
-                launcher.launch(
-                    IntentSenderRequest.Builder(state.intentSender).build()
+            else -> {}
+        }
+    }
+
+    // Este LaunchedEffect executa a requisição assíncrona
+    LaunchedEffect(loginState) {
+        if (loginState is LoginViewModel.LoginState.AwaitingSocialAuth) {
+            val request = (loginState as LoginViewModel.LoginState.AwaitingSocialAuth).request
+
+            // ✅ Verificar se temos uma Activity válida
+            if (activity == null) {
+                Toast.makeText(context, "Erro: Contexto inválido para login social", Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+                return@LaunchedEffect
+            }
+
+            try {
+                println("🔍 Iniciando getCredential com Activity: ${activity.javaClass.simpleName}")
+
+                // ✅ USAR ACTIVITY em vez de context
+                val result = credentialManager.getCredential(
+                    context = activity, // ✅ CORREÇÃO PRINCIPAL
+                    request = request
                 )
+
+                println("✅ Credencial obtida: ${result.credential.type}")
+                viewModel.handleGoogleSignInCredential(result.credential)
+
+            } catch (e: GetCredentialException) {
+                println("❌ GetCredentialException: ${e.type} - ${e.message}")
+                e.printStackTrace()
+
+                // ✅ Tratamento específico de erros
+                val errorMessage = when (e) {
+                    is androidx.credentials.exceptions.GetCredentialCancellationException -> {
+                        "Login cancelado"
+                    }
+                    is androidx.credentials.exceptions.NoCredentialException -> {
+                        "Nenhuma conta Google encontrada. Adicione uma conta nas configurações do dispositivo."
+                    }
+                    else -> {
+                        "Falha no login social: ${e.message}"
+                    }
+                }
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+
+            } catch (e: CancellationException) {
+                println("ℹ️ Login cancelado pelo usuário")
+                viewModel.resetState()
+
+            } catch (e: Exception) {
+                println("❌ Erro inesperado: ${e.message}")
+                e.printStackTrace()
+                Toast.makeText(context, "Erro inesperado: ${e.message}", Toast.LENGTH_LONG).show()
+                viewModel.resetState()
             }
-            else -> Unit
         }
     }
 
@@ -109,9 +161,9 @@ import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
                 onEmailChange = { email = it },
                 password = password,
                 onPasswordChange = { password = it },
-                isLoading = isLoading,
+                isLoading = isEnabled,
                 onLoginClick = { viewModel.signInLocal(email, password) },
-                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
+                onGoogleClick = { viewModel.getGoogleSignInRequest() },
                 onNavigateToRegister = onNavigateToRegister
             )
         } else {
@@ -121,9 +173,9 @@ import com.github.rafaabrito.projectgreenmind.ui.viewModel.LoginViewModel
                 onEmailChange = { email = it },
                 password = password,
                 onPasswordChange = { password = it },
-                isLoading = isLoading,
+                isLoading = isEnabled,
                 onLoginClick = { viewModel.signInLocal(email, password) },
-                onGoogleClick = { viewModel.getGoogleSignInIntentSender() },
+                onGoogleClick = { viewModel.getGoogleSignInRequest() },
                 onNavigateToRegister = onNavigateToRegister
             )
         }
@@ -174,9 +226,9 @@ private fun PortraitLoginScreen(
             )
         }
 
-        Spacer(modifier = Modifier.weight(0.8f))
+        Spacer(modifier = Modifier.height(8.dp))
         CreateAccount(onNavigateToRegister = onNavigateToRegister)
-        Spacer(modifier = Modifier.weight(0.3f))
+        Spacer(modifier = Modifier.height(15.dp))
     }
 }
 @Composable
@@ -241,7 +293,6 @@ private fun LoginSection(
     isLoading: Boolean,
     isButtonEnabled: Boolean
 ) {
-    // 1. Campo de Email
     LoginTextField(
         value = email,
         onValueChange = onEmailChange,
@@ -253,17 +304,29 @@ private fun LoginSection(
     )
     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small2))
 
-    // 2. Campo de Senha
     LoginTextField(
         value = password,
         onValueChange = onPasswordChange,
         label = "Senha",
-        trailing = "Esqueceu a senha?",
+        trailing = "",
         isPassword = true,
         keyboardType = KeyboardType.Password,
         enabled = !isLoading,
         modifier = Modifier.fillMaxWidth()
     )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Text(
+            text = "Esqueceu a senha?",
+            color = Color.Gray,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier
+                .padding(top = 4.dp, end = 4.dp)
+                .clickable { /* AÇÃO: navHostController.navigate(PasswordChange) */ }
+        )
+    }
     Spacer(modifier = Modifier.height(MaterialTheme.dimens.small3))
 
     // 3. Botão de Login

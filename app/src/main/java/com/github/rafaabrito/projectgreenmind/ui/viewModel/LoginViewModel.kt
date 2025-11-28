@@ -1,13 +1,16 @@
 package com.github.rafaabrito.projectgreenmind.ui.viewModel
 
-import android.content.Intent
-import android.content.IntentSender
+
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
 import com.github.rafaabrito.projectgreenmind.data.repository.UserRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.rafaabrito.projectgreenmind.data.model.User
 import com.github.rafaabrito.projectgreenmind.data.model.toDomainModel
 import com.github.rafaabrito.projectgreenmind.domain.utils.auth.AuthService
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,37 +27,57 @@ class LoginViewModel @Inject constructor(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Initial)
     val loginState: StateFlow<LoginState> = _loginState
 
-    // Inicia o fluxo e expõe o IntentSender
-    fun getGoogleSignInIntentSender() {
+    // Inicia o fluxo, retornando o GetCredentialRequest.
+    fun getGoogleSignInRequest() {
         _loginState.value = LoginState.Loading
         viewModelScope.launch {
-            val intentSender = authService.startSocialSignIn(AuthService.SocialProvider.GOOGLE)
-            if (intentSender != null) {
-                _loginState.value = LoginState.AwaitingSocialAuth(intentSender)
+            val request = authService.getGoogleIdCredentialRequest()
+            if (request != null) {
+                _loginState.value = LoginState.AwaitingSocialAuth(request)
             } else {
-                _loginState.value = LoginState.Error("Falha ao iniciar Google Sign-In.")
+                _loginState.value = LoginState.Error("Falha ao criar requisição de login do Google.")
             }
         }
     }
 
-    // Recebe o resultado da UI e finaliza a autenticação
-    fun handleGoogleSignInResult(intent: Intent?) {
-        if (intent == null) {
-            _loginState.value = LoginState.Error("Autenticação social cancelada.")
-            return
-        }
-
+    // Recebe a Credencial do Credential Manager
+    fun handleGoogleSignInCredential(credential: androidx.credentials.Credential) {
         _loginState.value = LoginState.Loading
         viewModelScope.launch {
-            when (val authResult = authService.completeSocialSignIn(intent)) {
-                is AuthService.AuthResponse.Success -> {
-                    // Reaproveita sua lógica de onSocialAuthResponse
-                    onSocialAuthResponse(authResult, null)
+            try {
+                if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    val idToken = googleIdTokenCredential.idToken
+
+                    // ✅ Adicione log para debug
+                    println("🔑 ID Token obtido: ${idToken.take(20)}...")
+
+                    when (val authResponse = authService.signInWithGoogleIdToken(idToken)) {
+                        is AuthService.AuthResponse.Success -> {
+                            val userEntity = userRepository.associateFirebaseUser(
+                                name = authResponse.name,
+                                email = authResponse.email,
+                                authId = authResponse.authId
+                            )
+                            val userModel = userEntity.toDomainModel()
+                            _loginState.value = LoginState.Success(userModel)
+                        }
+                        is AuthService.AuthResponse.Error -> {
+                            // ✅ Log detalhado do erro
+                            println("❌ Erro auth: ${authResponse.message}")
+                            _loginState.value = LoginState.Error("Falha: ${authResponse.message}")
+                        }
+                        else -> {
+                            _loginState.value = LoginState.Error("Autenticação falhou ou foi cancelada.")
+                        }
+                    }
+                } else {
+                    _loginState.value = LoginState.Error("Credencial inválida: ${credential.type}")
                 }
-                is AuthService.AuthResponse.Error -> {
-                    _loginState.value = LoginState.Error(authResult.message)
-                }
-                else -> {}
+            } catch (e: Exception) {
+                // ✅ Log da stack trace completa
+                e.printStackTrace()
+                _loginState.value = LoginState.Error("Erro: ${e.message}")
             }
         }
     }
@@ -62,45 +85,16 @@ class LoginViewModel @Inject constructor(
         _loginState.value = LoginState.Loading
         viewModelScope.launch {
             try {
-                val entity = userRepository.login(email, password)
-                if (entity != null) {
-                    _loginState.value = LoginState.Success(entity.toDomainModel())
+                val userEntity = userRepository.login(email, password)
+
+                if (userEntity != null) {
+                    val userModel = userEntity.toDomainModel()
+                    _loginState.value = LoginState.Success(userModel)
                 } else {
-                    _loginState.value = LoginState.Error("Credenciais inválidas.")
+                    _loginState.value = LoginState.Error("Credenciais de login inválidas. Verifique seu e-mail e senha.")
                 }
             } catch (e: Exception) {
-                _loginState.value = LoginState.Error("Erro ao conectar. ${e.message}")
-            }
-        }
-    }
-
-    fun onSocialAuthResponse(result: AuthService.AuthResponse.Success?, error: String?) {
-        _loginState.value = LoginState.Loading
-
-        viewModelScope.launch {
-            if (result != null) {
-                when (result) {
-                    else -> {
-                        try {
-                            val userEntity = userRepository.associateFirebaseUser(
-                                name = result.name,
-                                email = result.email,
-                                authId = result.authId
-                            )
-
-                            val userModel = userEntity.toDomainModel()
-                            _loginState.value = LoginState.Success(userModel)
-
-                        } catch (e: Exception) {
-                            _loginState.value =
-                                LoginState.Error("Erro local ao finalizar o login: ${e.message}")
-                        }
-                    }
-                }
-            } else if (error != null) {
-                _loginState.value = LoginState.Error("Falha na autenticação social: $error")
-            } else {
-                _loginState.value = LoginState.Error("Autenticação social cancelada ou falha desconhecida.")
+                _loginState.value = LoginState.Error("Erro ao tentar login: ${e.message}")
             }
         }
     }
@@ -111,7 +105,9 @@ class LoginViewModel @Inject constructor(
         data object Loading : LoginState()
         data class Success(val user: User) : LoginState()
         data class Error(val message: String) : LoginState()
-        // 🟢 NOVO ESTADO
-        data class AwaitingSocialAuth(val intentSender: IntentSender) : LoginState()
+        data class AwaitingSocialAuth(val request: GetCredentialRequest) : LoginState()    }
+
+    fun resetState() {
+        _loginState.value = LoginState.Initial
     }
 }

@@ -12,15 +12,12 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ScoreDao {
 
-    // Inserção de pontos
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertScore(score: ScoreEntity)
 
-    // Atualização da pontuação
     @Update
     suspend fun updateScore(score: ScoreEntity)
 
-    // Remover pontos
     @Delete
     suspend fun deleteScore(score: ScoreEntity)
 
@@ -29,4 +26,15 @@ interface ScoreDao {
 
     @Query("SELECT * FROM score ORDER BY totalScore DESC")
     fun getAllScores(): Flow<List<ScoreEntity>>
+
+    // ✅ CORRIGIDO: Usa score_progress (snake_case)
+    @Query("""
+        SELECT COALESCE(SUM(scoreEarned), 0) 
+        FROM score_progress 
+        WHERE userId = :userId AND isCompleted = 1
+    """)
+    suspend fun getTotalScoreByUserId(userId: Int): Int
+
+    @Query("SELECT COALESCE(totalScore, 0) FROM score WHERE userId = :userId LIMIT 1")
+    suspend fun getTotalScoreFromScoreTable(userId: Int): Int
 }
